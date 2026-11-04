@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: uniserve-web
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /ping.php
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false # Set this in Render Dashboard to your Supabase Transaction/Session pooler URL

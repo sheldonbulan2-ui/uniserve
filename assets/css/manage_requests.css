@@ -1,0 +1,381 @@
+
+/* =====================================================
+   UNISERVE — MANAGE REQUESTS
+   Separate page stylesheet.
+   Uses the existing admin dashboard design.
+   ===================================================== */
+
+.manage-requests-page .requests-overview {
+    margin: 0 0 28px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.manage-requests-page .requests-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    max-width: 360px;
+    padding: 22px;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 11px;
+}
+
+.manage-requests-page .requests-summary-icon {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: #173f64;
+    border: 1px solid #286293;
+    color: #9bd2ff;
+    font-size: 21px;
+}
+
+.manage-requests-page .requests-summary-card span,
+.manage-requests-page .requests-summary-card strong,
+.manage-requests-page .requests-summary-card small {
+    display: block;
+}
+
+.manage-requests-page .requests-summary-card span {
+    color: #c1d0e0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.manage-requests-page .requests-summary-card strong {
+    display: block;
+    margin: 4px 0;
+    color: #fff;
+    font-size: 30px;
+    line-height: 1.25;
+}
+
+.manage-requests-page .requests-summary-card small {
+    color: #9fb3ca;
+    font-size: 11px;
+}
+
+/* Table panel */
+
+.manage-requests-page .requests-table-panel {
+    min-width: 0;
+    margin: 0 0 28px;
+    padding: 24px;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+.manage-requests-page .requests-table-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.manage-requests-page .requests-table-heading h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 18px;
+}
+
+.manage-requests-page .requests-table-heading p {
+    margin: 5px 0 0;
+    color: var(--admin-muted);
+    font-size: 12px;
+}
+
+.manage-requests-page .requests-count {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border: 1px solid #28547a;
+    border-radius: 7px;
+    background: #12365c;
+    color: #a9d8ff;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Search */
+
+.manage-requests-page .requests-search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 20px;
+}
+
+.manage-requests-page .requests-search-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.manage-requests-page .requests-search-input input {
+    display: block;
+    width: 100%;
+    min-height: 43px;
+    margin: 0;
+    padding: 10px 14px;
+    border: 1px solid #d4deea;
+    border-radius: 8px;
+    background: #fff;
+    color: #172b4d;
+    font: inherit;
+    font-size: 13px;
+}
+
+.manage-requests-page .requests-search-input input::placeholder {
+    color: #8492a5;
+}
+
+.manage-requests-page .requests-search-form button {
+    min-height: 43px;
+    padding: 10px 20px;
+    border: 1px solid #2589d8;
+    border-radius: 8px;
+    background: #1769aa;
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.manage-requests-page .requests-search-form button:hover {
+    background: #2589d8;
+}
+
+.manage-requests-page .requests-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 43px;
+    padding: 9px 14px;
+    border: 1px solid #315474;
+    border-radius: 8px;
+    color: #c8d8e9;
+    font-size: 12px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.manage-requests-page .requests-clear:hover {
+    background: #12365c;
+    color: #fff;
+}
+
+/* Dynamic database table */
+
+.manage-requests-page .requests-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #dce5ef;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.manage-requests-page table.requests-table {
+    width: 100%;
+    min-width: 850px;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    border-spacing: 0;
+    background: #fff;
+    color: #172b4d;
+    box-shadow: none;
+}
+
+.manage-requests-page .requests-table th {
+    padding: 14px 15px;
+    background: #eef4fa;
+    color: #49627d;
+    border-bottom: 1px solid #dce5ef;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    white-space: nowrap;
+}
+
+.manage-requests-page .requests-table td {
+    padding: 14px 15px;
+    background: #fff;
+    color: #344b66;
+    border-bottom: 1px solid #e7edf4;
+    font-size: 12px;
+    vertical-align: middle;
+}
+
+.manage-requests-page .requests-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.manage-requests-page .requests-table tbody tr:hover td {
+    background: #f5f9fd;
+}
+
+.manage-requests-page .request-id {
+    color: #1769aa;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.manage-requests-page .request-cell-value {
+    display: inline-block;
+    max-width: 300px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.manage-requests-page .request-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.manage-requests-page .request-status.success {
+    background: #e8f5ed;
+    color: #24734b;
+}
+
+.manage-requests-page .request-status.pending {
+    background: #fbf3e4;
+    color: #946b22;
+}
+
+.manage-requests-page .request-status.danger {
+    background: #fbeeee;
+    color: #b54747;
+}
+
+.manage-requests-page .request-status.other {
+    background: #edf2f7;
+    color: #52657b;
+}
+
+/* Empty state */
+
+.manage-requests-page .requests-empty {
+    padding: 40px 20px;
+    text-align: center;
+    white-space: normal;
+}
+
+.manage-requests-page .requests-empty-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: #e7f2fc;
+    color: #1769aa;
+    font-size: 24px;
+}
+
+.manage-requests-page .requests-empty h3 {
+    margin: 0 0 7px;
+    color: #233b56;
+    font-size: 16px;
+}
+
+.manage-requests-page .requests-empty p {
+    margin: 0 0 14px;
+    color: #718096;
+    font-size: 12px;
+}
+
+.manage-requests-page .requests-empty a {
+    color: #1769aa;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+/* Footer */
+
+.manage-requests-page .requests-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--admin-border);
+    color: #9fb3ca;
+    font-size: 11px;
+}
+
+.manage-requests-page .requests-table-footer a {
+    color: #83c5ff;
+    font-weight: 650;
+}
+
+.manage-requests-page .requests-table-footer a:hover {
+    color: #fff;
+}
+
+.manage-requests-page .admin-footer {
+    margin-top: 30px;
+    padding: 20px 0 5px;
+    border-top: 1px solid var(--admin-border);
+    color: #91a7bf;
+    font-size: 11px;
+    text-align: center;
+}
+
+/* Responsive */
+
+@media (max-width: 800px) {
+    .manage-requests-page .requests-table-panel {
+        padding: 18px;
+    }
+
+    .manage-requests-page .requests-summary-card {
+        max-width: none;
+    }
+}
+
+@media (max-width: 520px) {
+    .manage-requests-page .requests-table-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .manage-requests-page .requests-search-form {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .manage-requests-page .requests-search-input {
+        flex-basis: 100%;
+    }
+
+    .manage-requests-page .requests-search-form button,
+    .manage-requests-page .requests-clear {
+        flex: 1;
+    }
+
+    .manage-requests-page .requests-table-panel {
+        padding: 14px;
+    }
+
+    .manage-requests-page .requests-table-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

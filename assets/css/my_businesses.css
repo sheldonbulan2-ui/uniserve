@@ -1,0 +1,1319 @@
+
+/* ==========================================
+   UNISERVE — MY BUSINESSES
+   Refined Dark Navy Dashboard Design
+========================================== */
+
+body.my-businesses-page {
+    --navy-bg: #061a33;
+    --navy-panel: #0b2342;
+    --navy-card: #102b4d;
+    --navy-hover: #15365c;
+    --navy-border: #234363;
+    --text-primary: #f3f7ff;
+    --text-secondary: #a9bad0;
+    --accent-blue: #4d9dff;
+    --accent-cyan: #43d5e8;
+
+    margin: 0;
+    min-height: 100vh;
+    background: var(--navy-bg) !important;
+    color: var(--text-primary);
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Prevent shared stylesheet backgrounds from overriding this page */
+
+body.my-businesses-page,
+body.my-businesses-page .main-content,
+body.my-businesses-page .content {
+    background-color: var(--navy-bg) !important;
+    color: var(--text-primary);
+}
+
+body.my-businesses-page *,
+body.my-businesses-page *::before,
+body.my-businesses-page *::after {
+    box-sizing: border-box;
+}
+
+body.my-businesses-page a {
+    text-decoration: none;
+}
+
+body.my-businesses-page p,
+body.my-businesses-page h1,
+body.my-businesses-page h2,
+body.my-businesses-page h3 {
+    margin-top: 0;
+}
+
+/* ==========================================
+   SIDEBAR
+========================================== */
+
+body.my-businesses-page .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 260px;
+    height: 100vh;
+    min-height: 100vh;
+    padding: 28px 18px 20px;
+
+    background: #081d37 !important;
+    border-right: 1px solid #183451;
+    color: var(--text-primary);
+
+    overflow-y: auto;
+}
+
+body.my-businesses-page .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 0 8px 30px;
+    margin-bottom: 25px;
+
+    border-bottom: 1px solid #1b3652;
+}
+
+body.my-businesses-page .brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 43px;
+    height: 43px;
+    border-radius: 13px;
+
+    background: linear-gradient(135deg, #2587f7, #38c5e7);
+    color: #ffffff;
+
+    font-size: 23px;
+    font-weight: 800;
+    box-shadow: 0 5px 18px rgb(37 135 247 / 20%);
+}
+
+body.my-businesses-page .brand-text {
+    min-width: 0;
+}
+
+body.my-businesses-page .brand-text h1 {
+    margin: 0 0 4px;
+    color: #f5f8ff;
+    font-size: 20px;
+    font-weight: 750;
+    letter-spacing: -0.5px;
+}
+
+body.my-businesses-page .brand-text p {
+    margin: 0;
+    color: #8fa6c1;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+body.my-businesses-page .nav-heading {
+    padding: 0 12px;
+    margin-bottom: 13px;
+
+    color: #718ba9;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 1.5px;
+}
+
+body.my-businesses-page .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    width: 100%;
+}
+
+body.my-businesses-page .sidebar .nav-link {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    width: 100%;
+    min-height: 47px;
+    padding: 12px 14px;
+
+    border: 1px solid transparent;
+    border-radius: 10px;
+
+    background: transparent;
+    color: #a9bad0;
+
+    font-size: 13px;
+    font-weight: 550;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+body.my-businesses-page .sidebar .nav-link:hover {
+    background: #102b4a;
+    border-color: #1b3b5b;
+    color: #ffffff;
+}
+
+body.my-businesses-page .sidebar .nav-link.active {
+    background: #12365c;
+    border-color: #245582;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+body.my-businesses-page .sidebar .nav-link.active::before {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: -18px;
+
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+
+    background: #45a2ff;
+    content: "";
+}
+
+body.my-businesses-page .nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 23px;
+    color: #8faed0;
+    font-size: 19px;
+    line-height: 1;
+}
+
+body.my-businesses-page .nav-link.active .nav-icon,
+body.my-businesses-page .nav-link:hover .nav-icon {
+    color: #60b4ff;
+}
+
+body.my-businesses-page .nav-label {
+    min-width: 0;
+}
+
+body.my-businesses-page .sidebar-bottom {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 22px;
+    border-top: 1px solid #1b3652;
+}
+
+body.my-businesses-page .sidebar-bottom .nav-link:hover {
+    background: #34232f;
+    border-color: #513343;
+    color: #ffb7c4;
+}
+
+body.my-businesses-page .sidebar-bottom .nav-link:hover .nav-icon {
+    color: #ff9caf;
+}
+
+/* ==========================================
+   MAIN CONTENT
+========================================== */
+
+body.my-businesses-page .main-content {
+    width: calc(100% - 260px);
+    min-width: 0;
+    min-height: 100vh;
+
+    margin-left: 260px;
+    padding: 0;
+
+    background: var(--navy-bg) !important;
+}
+
+body.my-businesses-page .content {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+
+    margin: 0;
+    padding: 30px 34px 42px;
+
+    background: var(--navy-bg) !important;
+}
+
+/* ==========================================
+   TOPBAR
+========================================== */
+
+body.my-businesses-page .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+
+    width: 100%;
+    min-height: 112px;
+    padding: 24px 34px;
+
+    background: #091f3a !important;
+    border-bottom: 1px solid #193653;
+}
+
+body.my-businesses-page .topbar-title {
+    min-width: 0;
+}
+
+body.my-businesses-page .page-eyebrow {
+    display: inline-block;
+    margin-bottom: 8px;
+
+    color: #58b0ff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+body.my-businesses-page .topbar-title h2 {
+    margin: 0 0 7px;
+    color: #f4f7ff;
+    font-size: 25px;
+    font-weight: 750;
+    letter-spacing: -0.6px;
+}
+
+body.my-businesses-page .topbar-title p {
+    margin: 0;
+    color: #9cb0c8;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+body.my-businesses-page .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+body.my-businesses-page .user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 43px;
+    height: 43px;
+    border: 1px solid #3474ae;
+    border-radius: 50%;
+
+    background: linear-gradient(135deg, #1a5590, #167caa);
+    color: #ffffff;
+
+    font-size: 17px;
+    font-weight: 750;
+}
+
+body.my-businesses-page .user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+body.my-businesses-page .user-details strong {
+    color: #edf4ff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+body.my-businesses-page .user-details span {
+    color: #8fa7c2;
+    font-size: 11px;
+}
+
+/* ==========================================
+   PAGE BANNER
+========================================== */
+
+body.my-businesses-page .page-banner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+
+    width: 100%;
+    min-height: 220px;
+    padding: 32px 36px;
+
+    overflow: hidden;
+    isolation: isolate;
+
+    background: linear-gradient(115deg, #0d2b4e 0%, #10365e 58%, #10466c 100%) !important;
+    border: 1px solid #23517a;
+    border-radius: 17px;
+}
+
+body.my-businesses-page .banner-content {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+}
+
+body.my-businesses-page .banner-label {
+    display: inline-block;
+    margin-bottom: 13px;
+
+    color: #65d8ee;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.7px;
+}
+
+body.my-businesses-page .banner-content h1 {
+    margin: 0 0 12px;
+    color: #ffffff;
+    font-size: clamp(27px, 3vw, 35px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.2;
+}
+
+body.my-businesses-page .banner-content p {
+    max-width: 590px;
+    margin: 0;
+
+    color: #c0d1e4;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+body.my-businesses-page .banner-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+
+    margin-top: 20px;
+    padding: 9px 13px;
+
+    background: rgb(4 20 39 / 35%);
+    border: 1px solid rgb(121 177 219 / 24%);
+    border-radius: 8px;
+
+    color: #d7e9fb;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+body.my-businesses-page .date-icon {
+    color: #69d6ee;
+    font-size: 15px;
+}
+
+body.my-businesses-page .banner-decoration {
+    position: absolute;
+    inset: 0 0 0 auto;
+    z-index: 1;
+
+    width: 35%;
+    min-width: 190px;
+    pointer-events: none;
+}
+
+body.my-businesses-page .decoration-circle {
+    position: absolute;
+    border: 1px solid rgb(115 200 255 / 15%);
+    border-radius: 50%;
+}
+
+body.my-businesses-page .circle-one {
+    top: -100px;
+    right: -45px;
+    width: 290px;
+    height: 290px;
+    background: rgb(69 157 235 / 7%);
+}
+
+body.my-businesses-page .circle-two {
+    right: 28px;
+    bottom: -155px;
+    width: 300px;
+    height: 300px;
+    background: rgb(51 211 230 / 5%);
+}
+
+body.my-businesses-page .decoration-icon {
+    position: absolute;
+    top: 50%;
+    right: 65px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 95px;
+    height: 95px;
+    transform: translateY(-50%) rotate(-8deg);
+
+    border: 1px solid rgb(120 199 255 / 30%);
+    border-radius: 25px;
+
+    background: rgb(53 133 197 / 15%);
+    color: rgb(160 220 255 / 70%);
+
+    font-size: 45px;
+}
+
+/* ==========================================
+   SUMMARY CARD
+========================================== */
+
+body.my-businesses-page .summary-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    width: 100%;
+    min-height: 130px;
+    padding: 25px 28px;
+
+    background: var(--navy-panel) !important;
+    border: 1px solid var(--navy-border);
+    border-radius: 14px;
+
+    box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
+}
+
+body.my-businesses-page .summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 62px;
+    height: 62px;
+    border: 1px solid #285b89;
+    border-radius: 15px;
+
+    background: #12385e;
+    color: #62baff;
+
+    font-size: 27px;
+}
+
+body.my-businesses-page .summary-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+body.my-businesses-page .summary-info > span {
+    color: #b1c3d9;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+body.my-businesses-page .summary-info strong {
+    color: #ffffff;
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+body.my-businesses-page .summary-info p {
+    margin: 0;
+    color: #819bb8;
+    font-size: 11px;
+}
+
+/* ==========================================
+   SECTION HEADING
+========================================== */
+
+body.my-businesses-page .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    width: 100%;
+    margin-top: 5px;
+}
+
+body.my-businesses-page .section-heading > div {
+    min-width: 0;
+}
+
+body.my-businesses-page .section-heading h2 {
+    margin: 0 0 8px;
+    color: #f0f5ff;
+    font-size: 20px;
+    font-weight: 750;
+    letter-spacing: -0.4px;
+}
+
+body.my-businesses-page .section-heading p {
+    margin: 0;
+    color: #94abc5;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* ==========================================
+   BUTTONS
+========================================== */
+
+body.my-businesses-page .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    flex-shrink: 0;
+
+    min-height: 43px;
+    padding: 11px 17px;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+body.my-businesses-page .button:hover {
+    transform: translateY(-1px);
+}
+
+body.my-businesses-page .primary-button {
+    background: #247bd4 !important;
+    border-color: #398fe9;
+    color: #ffffff !important;
+    box-shadow: 0 5px 14px rgb(17 103 193 / 20%);
+}
+
+body.my-businesses-page .primary-button:hover {
+    background: #328ee9 !important;
+    border-color: #61b0ff;
+    color: #ffffff !important;
+}
+
+body.my-businesses-page .secondary-button {
+    background: #102b49 !important;
+    border-color: #2a4968;
+    color: #c6d8ed !important;
+}
+
+body.my-businesses-page .secondary-button:hover {
+    background: #173958 !important;
+    border-color: #3a6b98;
+    color: #ffffff !important;
+}
+
+body.my-businesses-page .button-icon {
+    font-size: 17px;
+    line-height: 1;
+}
+
+body.my-businesses-page .page-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: -12px;
+}
+
+/* ==========================================
+   BUSINESS LIST AND CARDS
+========================================== */
+
+body.my-businesses-page .business-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+
+    width: 100%;
+    min-width: 0;
+}
+
+body.my-businesses-page .business-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    width: 100%;
+    min-width: 0;
+    padding: 25px 27px;
+
+    background: var(--navy-panel) !important;
+    border: 1px solid var(--navy-border);
+    border-radius: 15px;
+
+    box-shadow: 0 7px 22px rgb(0 0 0 / 10%);
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+body.my-businesses-page .business-card:hover {
+    background: #0d2848 !important;
+    border-color: #31577c;
+}
+
+body.my-businesses-page .business-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    width: 100%;
+    min-width: 0;
+}
+
+body.my-businesses-page .business-title-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    min-width: 0;
+}
+
+body.my-businesses-page .business-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 54px;
+    height: 54px;
+    border: 1px solid #2b5b86;
+    border-radius: 13px;
+
+    background: #123657;
+    color: #65bcff;
+
+    font-size: 24px;
+}
+
+body.my-businesses-page .business-title {
+    min-width: 0;
+}
+
+body.my-businesses-page .business-title h3 {
+    margin: 0 0 8px;
+    overflow-wrap: anywhere;
+
+    color: #f3f7ff;
+    font-size: 17px;
+    font-weight: 750;
+    line-height: 1.4;
+}
+
+body.my-businesses-page .business-category {
+    display: inline-block;
+    max-width: 100%;
+    padding: 5px 9px;
+
+    overflow-wrap: anywhere;
+    border: 1px solid #244766;
+    border-radius: 6px;
+
+    background: #102b47;
+    color: #9eb9d5;
+
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* ==========================================
+   STATUS BADGES
+========================================== */
+
+body.my-businesses-page .status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    min-height: 31px;
+    padding: 7px 12px;
+
+    border: 1px solid transparent;
+    border-radius: 20px;
+
+    font-size: 11px;
+    font-weight: 750;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+body.my-businesses-page .status-dot {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+body.my-businesses-page .status-pending {
+    background: #3b3019;
+    border-color: #65502a;
+    color: #f3c66e;
+}
+
+body.my-businesses-page .status-approved {
+    background: #123b35;
+    border-color: #286b5b;
+    color: #6ee0b8;
+}
+
+body.my-businesses-page .status-rejected {
+    background: #42252e;
+    border-color: #75404d;
+    color: #ff9aaa;
+}
+
+/* ==========================================
+   BUSINESS DIVIDER AND DETAILS
+========================================== */
+
+body.my-businesses-page .business-divider {
+    width: 100%;
+    height: 1px;
+    margin: 23px 0;
+
+    background: #203e5d;
+}
+
+body.my-businesses-page .business-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 30px;
+
+    width: 100%;
+    min-width: 0;
+}
+
+body.my-businesses-page .detail-item {
+    min-width: 0;
+}
+
+body.my-businesses-page .detail-label {
+    display: block;
+    margin-bottom: 9px;
+
+    color: #7895b4;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+body.my-businesses-page .detail-item p {
+    margin: 0;
+    overflow-wrap: anywhere;
+    word-break: normal;
+
+    color: #d1deed;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+body.my-businesses-page .detail-description {
+    grid-column: 1 / -1;
+}
+
+body.my-businesses-page .detail-description p {
+    white-space: normal;
+}
+
+/* ==========================================
+   STATUS NOTICE
+========================================== */
+
+body.my-businesses-page .business-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+
+    width: 100%;
+    min-width: 0;
+    margin-top: 25px;
+    padding: 16px 18px;
+
+    border: 1px solid transparent;
+    border-radius: 10px;
+}
+
+body.my-businesses-page .notice-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+body.my-businesses-page .business-notice > div {
+    min-width: 0;
+}
+
+body.my-businesses-page .business-notice strong {
+    display: block;
+    margin-bottom: 5px;
+
+    font-size: 12px;
+    font-weight: 750;
+}
+
+body.my-businesses-page .business-notice p {
+    margin: 0;
+    overflow-wrap: anywhere;
+
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+body.my-businesses-page .notice-pending {
+    background: #302919;
+    border-color: #5c4a28;
+}
+
+body.my-businesses-page .notice-pending .notice-icon {
+    background: #5b4723;
+    color: #ffda88;
+}
+
+body.my-businesses-page .notice-pending strong {
+    color: #f1cb7d;
+}
+
+body.my-businesses-page .notice-pending p {
+    color: #cbbd9e;
+}
+
+body.my-businesses-page .notice-approved {
+    background: #102f2d;
+    border-color: #24574d;
+}
+
+body.my-businesses-page .notice-approved .notice-icon {
+    background: #1e5548;
+    color: #8cf0ca;
+}
+
+body.my-businesses-page .notice-approved strong {
+    color: #7be3bd;
+}
+
+body.my-businesses-page .notice-approved p {
+    color: #a9d0c5;
+}
+
+body.my-businesses-page .notice-rejected {
+    background: #35232c;
+    border-color: #68404b;
+}
+
+body.my-businesses-page .notice-rejected .notice-icon {
+    background: #643743;
+    color: #ffb2bd;
+}
+
+body.my-businesses-page .notice-rejected strong {
+    color: #ff9cab;
+}
+
+body.my-businesses-page .notice-rejected p {
+    color: #d6afb7;
+}
+
+/* ==========================================
+   EMPTY STATE
+========================================== */
+
+body.my-businesses-page .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 350px;
+    padding: 45px 28px;
+
+    background: var(--navy-panel) !important;
+    border: 1px dashed #315272;
+    border-radius: 15px;
+
+    text-align: center;
+}
+
+body.my-businesses-page .empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 75px;
+    height: 75px;
+    margin-bottom: 22px;
+
+    border: 1px solid #28547d;
+    border-radius: 20px;
+
+    background: #123456;
+    color: #65baff;
+
+    font-size: 34px;
+}
+
+body.my-businesses-page .empty-state h3 {
+    margin: 0 0 12px;
+    color: #f1f6ff;
+    font-size: 20px;
+    font-weight: 750;
+}
+
+body.my-businesses-page .empty-state p {
+    max-width: 470px;
+    margin: 0 0 23px;
+
+    color: #9cb1c9;
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+/* ==========================================
+   FOCUS ACCESSIBILITY
+========================================== */
+
+body.my-businesses-page a:focus-visible {
+    outline: 2px solid #65bdff;
+    outline-offset: 4px;
+}
+
+/* ==========================================
+   RESPONSIVE — TABLETS
+========================================== */
+
+@media (max-width: 1100px) {
+    body.my-businesses-page .content {
+        padding: 25px 24px 35px;
+    }
+
+    body.my-businesses-page .topbar {
+        padding: 22px 24px;
+    }
+
+    body.my-businesses-page .page-banner {
+        padding: 29px;
+    }
+
+    body.my-businesses-page .decoration-icon {
+        right: 35px;
+    }
+
+    body.my-businesses-page .business-card {
+        padding: 22px;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE — SMALL TABLETS
+========================================== */
+
+@media (max-width: 800px) {
+    body.my-businesses-page .sidebar {
+        width: 220px;
+        padding-right: 14px;
+        padding-left: 14px;
+    }
+
+    body.my-businesses-page .main-content {
+        width: calc(100% - 220px);
+        margin-left: 220px;
+    }
+
+    body.my-businesses-page .sidebar .nav-link {
+        gap: 10px;
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    body.my-businesses-page .sidebar .nav-link.active::before {
+        left: -14px;
+    }
+
+    body.my-businesses-page .topbar {
+        align-items: flex-start;
+    }
+
+    body.my-businesses-page .user-details {
+        display: none;
+    }
+
+    body.my-businesses-page .banner-decoration {
+        opacity: 0.55;
+    }
+
+    body.my-businesses-page .business-details {
+        gap: 22px;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE — MOBILE
+========================================== */
+
+@media (max-width: 600px) {
+    body.my-businesses-page .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        padding: 17px 16px;
+
+        border-right: 0;
+        border-bottom: 1px solid #1b3652;
+    }
+
+    body.my-businesses-page .brand {
+        padding: 0 3px 16px;
+        margin-bottom: 16px;
+    }
+
+    body.my-businesses-page .nav-heading {
+        padding: 0 3px;
+        margin-bottom: 10px;
+    }
+
+    body.my-businesses-page .sidebar-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    body.my-businesses-page .sidebar .nav-link {
+        min-height: 42px;
+        padding: 10px;
+        font-size: 11px;
+    }
+
+    body.my-businesses-page .sidebar .nav-link.active::before {
+        display: none;
+    }
+
+    body.my-businesses-page .nav-icon {
+        width: 19px;
+        font-size: 16px;
+    }
+
+    body.my-businesses-page .sidebar-bottom {
+        margin-top: 14px;
+        padding-top: 12px;
+    }
+
+    body.my-businesses-page .sidebar-bottom .nav-link {
+        width: 100%;
+    }
+
+    body.my-businesses-page .main-content {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    body.my-businesses-page .topbar {
+        min-height: auto;
+        padding: 20px 18px;
+    }
+
+    body.my-businesses-page .topbar-title h2 {
+        font-size: 21px;
+    }
+
+    body.my-businesses-page .topbar-title p {
+        max-width: 280px;
+        font-size: 11px;
+    }
+
+    body.my-businesses-page .user-avatar {
+        width: 38px;
+        height: 38px;
+    }
+
+    body.my-businesses-page .content {
+        gap: 20px;
+        padding: 20px 16px 30px;
+    }
+
+    body.my-businesses-page .page-banner {
+        min-height: 0;
+        padding: 25px 22px;
+        border-radius: 13px;
+    }
+
+    body.my-businesses-page .banner-content {
+        max-width: 100%;
+    }
+
+    body.my-businesses-page .banner-content h1 {
+        font-size: 27px;
+    }
+
+    body.my-businesses-page .banner-content p {
+        font-size: 12px;
+    }
+
+    body.my-businesses-page .banner-decoration {
+        opacity: 0.2;
+    }
+
+    body.my-businesses-page .decoration-icon {
+        right: 15px;
+        width: 65px;
+        height: 65px;
+        font-size: 30px;
+    }
+
+    body.my-businesses-page .summary-card {
+        min-height: 110px;
+        padding: 20px;
+        gap: 15px;
+    }
+
+    body.my-businesses-page .summary-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 23px;
+    }
+
+    body.my-businesses-page .summary-info strong {
+        font-size: 26px;
+    }
+
+    body.my-businesses-page .section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    body.my-businesses-page .section-heading h2 {
+        font-size: 19px;
+    }
+
+    body.my-businesses-page .page-actions {
+        margin-top: -7px;
+    }
+
+    body.my-businesses-page .business-card {
+        padding: 19px 17px;
+        border-radius: 12px;
+    }
+
+    body.my-businesses-page .business-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    body.my-businesses-page .business-title-group {
+        gap: 12px;
+    }
+
+    body.my-businesses-page .business-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 21px;
+    }
+
+    body.my-businesses-page .business-title h3 {
+        font-size: 15px;
+    }
+
+    body.my-businesses-page .business-details {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 19px;
+    }
+
+    body.my-businesses-page .detail-description {
+        grid-column: auto;
+    }
+
+    body.my-businesses-page .business-notice {
+        padding: 14px;
+    }
+
+    body.my-businesses-page .empty-state {
+        min-height: 300px;
+        padding: 35px 20px;
+    }
+
+    body.my-businesses-page .empty-state h3 {
+        font-size: 18px;
+    }
+}
+
+/* ==========================================
+   RESPONSIVE — VERY SMALL SCREENS
+========================================== */
+
+@media (max-width: 380px) {
+    body.my-businesses-page .topbar {
+        gap: 10px;
+        padding-right: 13px;
+        padding-left: 13px;
+    }
+
+    body.my-businesses-page .topbar-title h2 {
+        font-size: 19px;
+    }
+
+    body.my-businesses-page .content {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    body.my-businesses-page .page-banner {
+        padding: 22px 17px;
+    }
+
+    body.my-businesses-page .button {
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    body.my-businesses-page .business-card {
+        padding: 16px 14px;
+    }
+}

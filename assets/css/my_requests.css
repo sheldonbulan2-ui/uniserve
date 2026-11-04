@@ -1,0 +1,682 @@
+
+/* =========================================
+   UNISERVE - MY REQUESTS
+   Page-specific styling
+   ========================================= */
+
+.my-requests-page {
+    --mr-bg: #071b33;
+    --mr-panel: #0d2847;
+    --mr-panel-light: #123557;
+    --mr-border: #244a70;
+    --mr-blue: #2995e5;
+    --mr-blue-hover: #1979c3;
+    --mr-text: #f4f8ff;
+    --mr-muted: #b4c7dc;
+    background: var(--mr-bg);
+    color: var(--mr-text);
+}
+
+.my-requests-page .layout {
+    min-height: 100vh;
+}
+
+.my-requests-page .main-area {
+    min-width: 0;
+}
+
+.my-requests-page .content {
+    min-width: 0;
+    padding: 30px 34px;
+    box-sizing: border-box;
+}
+
+/* Sidebar */
+
+.my-requests-page .nav-menu a,
+.my-requests-page .sidebar .nav-menu a,
+.my-requests-page .sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 15px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: #d6e5f7;
+    text-decoration: none;
+    transition: background .2s ease, border-color .2s ease;
+}
+
+.my-requests-page .sidebar nav a:hover {
+    background: #102d4c;
+    color: #fff;
+}
+
+.my-requests-page .sidebar nav a.active {
+    background: #174a76;
+    border-color: #28689c;
+    box-shadow: inset 3px 0 #39a8ff;
+    color: #fff;
+    font-weight: 700;
+}
+
+.my-requests-page .nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    flex-shrink: 0;
+    color: #82c8ff;
+    font-size: 17px;
+}
+
+.my-requests-page .nav-label {
+    min-width: 0;
+}
+
+/* Topbar */
+
+.my-requests-page .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 100px;
+    padding: 20px 34px;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--mr-border);
+    background: #0a203a;
+}
+
+.my-requests-page .my-requests-topbar-heading h2 {
+    margin: 0 0 6px;
+    color: #fff;
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.my-requests-page .my-requests-topbar-heading p {
+    margin: 0;
+    color: var(--mr-muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.my-requests-page .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.my-requests-page .avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 1px solid #368bc4;
+    border-radius: 50%;
+    background: #175681;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.my-requests-page .user-info strong {
+    color: #fff;
+    font-size: 13px;
+}
+
+.my-requests-page .user-info p {
+    margin: 5px 0 0;
+    color: var(--mr-muted);
+    font-size: 12px;
+}
+
+/* Breadcrumb */
+
+.my-requests-page .requests-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 22px;
+    color: var(--mr-muted);
+    font-size: 12px;
+}
+
+.my-requests-page .requests-breadcrumb a {
+    color: #70baff;
+    text-decoration: none;
+}
+
+.my-requests-page .requests-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.my-requests-page .requests-breadcrumb strong {
+    color: #fff;
+}
+
+/* Hero */
+
+.my-requests-page .requests-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    min-height: 165px;
+    padding: 30px;
+    margin-bottom: 23px;
+    box-sizing: border-box;
+    border: 1px solid #28577f;
+    border-radius: 14px;
+    background: linear-gradient(115deg, #123b61, #102c4b);
+}
+
+.my-requests-page .requests-hero-copy {
+    min-width: 0;
+}
+
+.my-requests-page .requests-eyebrow {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: #75c4ff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+}
+
+.my-requests-page .requests-hero h1 {
+    margin: 0 0 10px;
+    color: #fff;
+    font-size: clamp(25px, 2.4vw, 34px);
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.my-requests-page .requests-hero p {
+    max-width: 650px;
+    margin: 0;
+    color: #c6d9ee;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.my-requests-page .requests-primary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    flex-shrink: 0;
+    padding: 0 17px;
+    box-sizing: border-box;
+    border: 1px solid #39a4f3;
+    border-radius: 8px;
+    background: var(--mr-blue);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition: background .2s ease;
+}
+
+.my-requests-page .requests-primary-button:hover {
+    background: var(--mr-blue-hover);
+}
+
+.my-requests-page .requests-primary-button > span {
+    font-size: 17px;
+    line-height: 1;
+}
+
+/* Notification */
+
+.my-requests-page .requests-message {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 15px 18px;
+    margin-bottom: 22px;
+    border: 1px solid #26765a;
+    border-radius: 9px;
+    background: #103c38;
+    color: #b9f5d5;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.my-requests-page .requests-message-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 25px;
+    height: 25px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #1b6b50;
+    color: #d4ffeb;
+    font-weight: 800;
+}
+
+/* Summary */
+
+.my-requests-page .requests-summary {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    padding: 22px 25px;
+    margin-bottom: 25px;
+    border: 1px solid var(--mr-border);
+    border-radius: 12px;
+    background: var(--mr-panel);
+}
+
+.my-requests-page .requests-summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border: 1px solid #327ab0;
+    border-radius: 12px;
+    background: #153f63;
+    color: #8bd0ff;
+    font-size: 22px;
+}
+
+.my-requests-page .requests-summary > div:nth-child(2) {
+    min-width: 0;
+}
+
+.my-requests-page .requests-summary-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #80c7ff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.my-requests-page .requests-summary h2 {
+    margin: 0 0 4px;
+    color: #fff;
+    font-size: 27px;
+    font-weight: 800;
+}
+
+.my-requests-page .requests-summary p {
+    margin: 0;
+    color: var(--mr-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.my-requests-page .requests-summary-badge {
+    flex-shrink: 0;
+    padding: 9px 12px;
+    margin-left: auto;
+    border: 1px solid #2d5c82;
+    border-radius: 7px;
+    background: #103555;
+    color: #87caff;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Request directory */
+
+.my-requests-page .requests-directory {
+    overflow: hidden;
+    border: 1px solid var(--mr-border);
+    border-radius: 13px;
+    background: var(--mr-panel);
+}
+
+.my-requests-page .requests-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 23px 26px;
+    border-bottom: 1px solid var(--mr-border);
+}
+
+.my-requests-page .requests-section-header h2 {
+    margin: 0 0 7px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 750;
+}
+
+.my-requests-page .requests-section-header p {
+    margin: 0;
+    color: var(--mr-muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.my-requests-page .requests-count {
+    flex-shrink: 0;
+    padding: 9px 12px;
+    border: 1px solid #2d5c82;
+    border-radius: 7px;
+    background: #103555;
+    color: #87caff;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Table */
+
+.my-requests-page .requests-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-color: #7c8998 #eef2f6;
+    scrollbar-width: thin;
+}
+
+.my-requests-page .requests-table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.my-requests-page .requests-table thead th {
+    padding: 17px 15px;
+    border-bottom: 1px solid #294866;
+    background: #0a223d;
+    color: #85caff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .3px;
+    white-space: nowrap;
+}
+
+.my-requests-page .requests-table thead th:first-child,
+.my-requests-page .requests-table tbody td:first-child {
+    padding-left: 24px;
+}
+
+.my-requests-page .requests-table tbody td {
+    padding: 17px 15px;
+    border-bottom: 1px solid #254562;
+    background: #102d4c;
+    color: #d0dfef;
+    font-size: 12px;
+    line-height: 1.65;
+    vertical-align: middle;
+}
+
+.my-requests-page .requests-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.my-requests-page .requests-table tbody tr:hover td {
+    background: #153758;
+}
+
+.my-requests-page .requests-table .request-id {
+    color: #85caff;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.my-requests-page .requests-table .request-business,
+.my-requests-page .requests-table .request-service {
+    max-width: 190px;
+    color: #f1f7ff;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.my-requests-page .requests-table .request-amount {
+    color: #9bd6ff;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Status badges */
+
+.my-requests-page .request-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 6px 9px;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.my-requests-page .status-dot {
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.my-requests-page .request-status.pending {
+    border-color: #8b6c2d;
+    background: #49391c;
+    color: #ffd782;
+}
+
+.my-requests-page .request-status.accepted {
+    border-color: #286caa;
+    background: #153b5f;
+    color: #8dccff;
+}
+
+.my-requests-page .request-status.in_progress {
+    border-color: #6e55a8;
+    background: #302650;
+    color: #d0baff;
+}
+
+.my-requests-page .request-status.completed {
+    border-color: #287957;
+    background: #143e32;
+    color: #91e7b9;
+}
+
+.my-requests-page .request-status.cancelled,
+.my-requests-page .request-status.rejected {
+    border-color: #9c484e;
+    background: #49272e;
+    color: #ffb0b4;
+}
+
+.my-requests-page .request-status.unknown {
+    border-color: #526579;
+    background: #26394b;
+    color: #c4d0dc;
+}
+
+/* Action buttons */
+
+.my-requests-page .request-view-button,
+.my-requests-page .request-cancel-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 11px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .2s ease;
+}
+
+.my-requests-page .request-view-button {
+    border-color: #2f79ad;
+    background: #164d76;
+    color: #b5e0ff;
+}
+
+.my-requests-page .request-view-button:hover {
+    background: #1c6395;
+}
+
+.my-requests-page .request-cancel-form {
+    margin: 0;
+}
+
+.my-requests-page .request-cancel-button {
+    border-color: #8b424a;
+    background: #48252d;
+    color: #ffb3b8;
+}
+
+.my-requests-page .request-cancel-button:hover {
+    background: #6b303a;
+}
+
+.my-requests-page .request-action-unavailable {
+    color: #8297ad;
+    font-size: 14px;
+}
+
+/* Table footer */
+
+.my-requests-page .requests-table-footer {
+    padding: 13px 24px;
+    border-top: 1px solid #254562;
+    background: #0b2440;
+    color: var(--mr-muted);
+    font-size: 11px;
+}
+
+/* Empty state */
+
+.my-requests-page .requests-empty-state {
+    padding: 48px 24px;
+    margin: 26px;
+    border: 1px dashed #365b7e;
+    border-radius: 10px;
+    background: #0b2440;
+    text-align: center;
+}
+
+.my-requests-page .requests-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 17px;
+    border: 1px solid #376e99;
+    border-radius: 50%;
+    background: #153d60;
+    color: #8bd0ff;
+    font-size: 23px;
+}
+
+.my-requests-page .requests-empty-state h3 {
+    margin: 0 0 10px;
+    color: #fff;
+    font-size: 19px;
+}
+
+.my-requests-page .requests-empty-state p {
+    max-width: 480px;
+    margin: 0 auto 22px;
+    color: var(--mr-muted);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+/* Footer */
+
+.my-requests-page .requests-footer {
+    padding: 22px 0 5px;
+    margin-top: 29px;
+    border-top: 1px solid #203e5b;
+    text-align: center;
+}
+
+.my-requests-page .requests-footer p {
+    margin: 0;
+    color: #8fa8c1;
+    font-size: 11px;
+    line-height: 1.8;
+}
+
+/* Responsive */
+
+@media (max-width: 1050px) {
+    .my-requests-page .content {
+        padding: 24px;
+    }
+
+    .my-requests-page .requests-hero {
+        padding: 25px;
+    }
+
+    .my-requests-page .requests-table {
+        min-width: 1100px;
+    }
+}
+
+@media (max-width: 650px) {
+    .my-requests-page .content {
+        padding: 17px;
+    }
+
+    .my-requests-page .topbar {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        padding: 17px;
+    }
+
+    .my-requests-page .my-requests-topbar-heading h2 {
+        font-size: 20px;
+    }
+
+    .my-requests-page .requests-hero {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 19px;
+        padding: 23px;
+    }
+
+    .my-requests-page .requests-hero h1 {
+        font-size: 27px;
+    }
+
+    .my-requests-page .requests-summary {
+        flex-wrap: wrap;
+        padding: 18px;
+    }
+
+    .my-requests-page .requests-summary-badge {
+        margin-left: 0;
+    }
+
+    .my-requests-page .requests-section-header {
+        align-items: flex-start;
+        padding: 20px;
+    }
+
+    .my-requests-page .requests-empty-state {
+        margin: 15px;
+        padding: 35px 18px;
+    }
+}

@@ -1,0 +1,991 @@
+/* ==========================================
+   UNISERVE — MANAGE TRANSACTIONS
+   Dark Navy Dashboard
+   Customer Dashboard Font
+========================================== */
+
+body.manage-transactions-page {
+    --tx-bg: #061a33;
+    --tx-sidebar: #081e39;
+    --tx-panel: #0b2342;
+    --tx-card: #102b4d;
+    --tx-hover: #15365c;
+    --tx-border: #203e60;
+    --tx-text: #f1f5ff;
+    --tx-muted: #9eb1cc;
+    --tx-blue: #3984f6;
+    --tx-green: #31c995;
+    --tx-yellow: #f2c66d;
+    --tx-red: #f06c83;
+
+    min-height: 100vh;
+    margin: 0;
+    background: var(--tx-bg);
+    color: var(--tx-text);
+
+    /* Keep the same font family as the customer dashboard */
+    font-family: inherit;
+}
+
+.manage-transactions-page *,
+.manage-transactions-page *::before,
+.manage-transactions-page *::after {
+    box-sizing: border-box;
+}
+
+/* ==========================================
+   MAIN LAYOUT
+========================================== */
+
+.manage-transactions-page .layout,
+.manage-transactions-page.admin-layout {
+    min-height: 100vh;
+    background: var(--tx-bg);
+}
+
+.manage-transactions-page .sidebar,
+.manage-transactions-page .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+
+    width: 255px;
+    height: 100vh;
+    height: 100dvh;
+
+    padding: 25px 17px 20px;
+
+    /* Prevent a separate scrollbar inside the sidebar */
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    border-right: 1px solid rgba(158, 177, 204, 0.1);
+    background: var(--tx-sidebar);
+}
+
+.manage-transactions-page .sidebar::-webkit-scrollbar,
+.manage-transactions-page .admin-sidebar::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.manage-transactions-page .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    margin-bottom: 35px;
+    padding: 0 5px;
+}
+
+.manage-transactions-page .brand-icon {
+    display: grid;
+    place-items: center;
+    width: 43px;
+    height: 43px;
+    flex-shrink: 0;
+    border: 1px solid rgba(121, 177, 255, 0.4);
+    border-radius: 12px;
+    background: linear-gradient(145deg, #3984f6, #1855ad);
+    color: #ffffff;
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.manage-transactions-page .brand h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 750;
+    letter-spacing: -0.5px;
+}
+
+.manage-transactions-page .brand p {
+    margin: 4px 0 0;
+    color: var(--tx-muted);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.manage-transactions-page .sidebar > h3,
+.manage-transactions-page .sidebar-bottom > h3 {
+    flex-shrink: 0;
+    margin: 0 0 12px;
+    padding: 0 11px;
+    color: #6f89a8;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+}
+
+.manage-transactions-page .sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.manage-transactions-page .sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    min-height: 44px;
+    padding: 11px 12px;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: transparent;
+    color: #a9bdd6;
+
+    font-size: 12px;
+    font-weight: 550;
+    text-decoration: none;
+
+    transition: background 0.2s ease,
+                color 0.2s ease,
+                border-color 0.2s ease;
+}
+
+.manage-transactions-page .sidebar nav a:hover {
+    border-color: rgba(57, 132, 246, 0.15);
+    background: rgba(57, 132, 246, 0.09);
+    color: #ffffff;
+}
+
+.manage-transactions-page .sidebar nav a.active {
+    border-color: rgba(57, 132, 246, 0.25);
+    background: rgba(57, 132, 246, 0.16);
+    color: #8dbbff;
+    font-weight: 700;
+}
+
+.manage-transactions-page .nav-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 21px;
+    flex-shrink: 0;
+    color: #8ca9ca;
+    font-size: 17px;
+}
+
+.manage-transactions-page .sidebar nav a.active .nav-icon {
+    color: #8dbbff;
+}
+
+.manage-transactions-page .sidebar-bottom {
+    flex-shrink: 0;
+    margin-top: auto;
+    padding-top: 28px;
+}
+
+/* ==========================================
+   MAIN CONTENT AND TOPBAR
+========================================== */
+
+.manage-transactions-page .main-content,
+.manage-transactions-page .admin-main {
+    min-width: 0;
+    min-height: 100vh;
+    margin-left: 255px;
+    background: var(--tx-bg);
+}
+
+.manage-transactions-page .admin-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 88px;
+    padding: 17px 36px;
+
+    border-bottom: 1px solid rgba(158, 177, 204, 0.12);
+    background: #081e39;
+}
+
+.manage-transactions-page .admin-topbar h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 750;
+    letter-spacing: -0.4px;
+}
+
+.manage-transactions-page .admin-topbar > div:first-child p {
+    margin: 6px 0 0;
+    color: var(--tx-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.manage-transactions-page .admin-info {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    flex-shrink: 0;
+}
+
+.manage-transactions-page .admin-avatar {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border: 1px solid rgba(57, 132, 246, 0.4);
+    border-radius: 50%;
+    background: #15365c;
+    color: #a6cbff;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.manage-transactions-page .admin-info strong {
+    display: block;
+    color: #f1f5ff;
+    font-size: 12px;
+}
+
+.manage-transactions-page .admin-info p {
+    margin: 4px 0 0;
+    color: var(--tx-muted);
+    font-size: 10px;
+}
+
+.manage-transactions-page .admin-content {
+    width: 100%;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 30px 36px 35px;
+}
+
+/* ==========================================
+   WELCOME SECTION
+========================================== */
+
+.manage-transactions-page .welcome-section {
+    position: relative;
+    margin-bottom: 25px;
+    padding: 27px 30px;
+    overflow: hidden;
+
+    border: 1px solid rgba(57, 132, 246, 0.22);
+    border-radius: 14px;
+
+    background:
+        radial-gradient(
+            ellipse at 95% 0%,
+            rgba(57, 132, 246, 0.16),
+            transparent 48%
+        ),
+        linear-gradient(120deg, #0b2342, #0d2b4f);
+}
+
+.manage-transactions-page .welcome-label {
+    display: inline-block;
+    margin-bottom: 11px;
+    color: #8dbbff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+}
+
+.manage-transactions-page .welcome-copy h2 {
+    margin: 0 0 10px;
+    color: #ffffff;
+    font-size: clamp(23px, 2.3vw, 30px);
+    font-weight: 760;
+    letter-spacing: -0.8px;
+}
+
+.manage-transactions-page .welcome-copy p {
+    max-width: 650px;
+    margin: 0;
+    color: #afc2dc;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+/* ==========================================
+   NOTIFICATIONS
+========================================== */
+
+.manage-transactions-page .transaction-notice {
+    margin-bottom: 22px;
+    padding: 14px 17px;
+    border: 1px solid var(--tx-border);
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.manage-transactions-page .notice-success {
+    border-color: rgba(49, 201, 149, 0.3);
+    background: rgba(49, 201, 149, 0.09);
+    color: #8de8c6;
+}
+
+.manage-transactions-page .notice-warning {
+    border-color: rgba(242, 198, 109, 0.3);
+    background: rgba(242, 198, 109, 0.08);
+    color: #f5d997;
+}
+
+.manage-transactions-page .notice-error {
+    border-color: rgba(240, 108, 131, 0.3);
+    background: rgba(240, 108, 131, 0.08);
+    color: #ffb5c2;
+}
+
+/* ==========================================
+   SUMMARY CARDS
+========================================== */
+
+.manage-transactions-page .transaction-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 25px;
+
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+.manage-transactions-page .transaction-summary-card {
+    position: relative;
+    min-width: 0;
+    padding: 21px 22px;
+
+    border: 1px solid var(--tx-border);
+    border-radius: 12px;
+    background: linear-gradient(145deg, #102b4d, #0c2442);
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+}
+
+.manage-transactions-page .summary-card-label {
+    display: block;
+    margin-bottom: 14px;
+    color: var(--tx-muted);
+    font-size: 11px;
+    font-weight: 650;
+}
+
+.manage-transactions-page .transaction-summary-card strong {
+    display: block;
+    color: #ffffff;
+    font-size: 29px;
+    font-weight: 780;
+    letter-spacing: -0.8px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.manage-transactions-page .transaction-summary-card small {
+    display: block;
+    margin-top: 9px;
+    color: #9eb1cc;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.manage-transactions-page .summary-pending {
+    border-top: 3px solid var(--tx-yellow);
+}
+
+.manage-transactions-page .summary-paid {
+    border-top: 3px solid var(--tx-green);
+}
+
+.manage-transactions-page .summary-failed {
+    border-top: 3px solid var(--tx-red);
+}
+
+/* ==========================================
+   TRANSACTION PANEL
+========================================== */
+
+.manage-transactions-page .transaction-panel {
+    min-width: 0;
+    padding: 26px;
+    border: 1px solid var(--tx-border);
+    border-radius: 14px;
+    background: var(--tx-panel);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+}
+
+.manage-transactions-page .admin-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.manage-transactions-page .admin-section-heading h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 750;
+    letter-spacing: -0.3px;
+}
+
+.manage-transactions-page .admin-section-heading p {
+    margin: 7px 0 0;
+    color: var(--tx-muted);
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.manage-transactions-page .overview-label {
+    flex-shrink: 0;
+    padding: 8px 11px;
+    border: 1px solid #284a70;
+    border-radius: 7px;
+    background: #102b4d;
+    color: #9ebce0;
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 1px;
+}
+
+/* ==========================================
+   SEARCH
+========================================== */
+
+.manage-transactions-page .transaction-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 22px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.manage-transactions-page .search-input-wrap {
+    flex: 1;
+    min-width: 0;
+}
+
+.manage-transactions-page .search-input-wrap input {
+    display: block;
+    width: 100%;
+    height: 43px;
+    margin: 0;
+    padding: 0 14px;
+
+    border: 1px solid #294969;
+    border-radius: 9px;
+    outline: none;
+
+    background: #081e38;
+    box-shadow: none;
+    color: #f1f5ff;
+
+    font: inherit;
+    font-size: 12px;
+
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+.manage-transactions-page .search-input-wrap input::placeholder {
+    color: #9eb1cc;
+    opacity: 1;
+}
+
+.manage-transactions-page .search-input-wrap input:focus {
+    border-color: var(--tx-blue);
+    box-shadow: 0 0 0 3px rgba(57, 132, 246, 0.12);
+}
+
+.manage-transactions-page .search-button,
+.manage-transactions-page .clear-search {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 17px;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease,
+                border-color 0.2s ease;
+}
+
+.manage-transactions-page .search-button {
+    background: var(--tx-blue);
+    color: #ffffff;
+}
+
+.manage-transactions-page .search-button:hover {
+    background: #5597ff;
+}
+
+.manage-transactions-page .clear-search {
+    border-color: #345575;
+    background: #102b4d;
+    color: #c3d5ed;
+}
+
+.manage-transactions-page .clear-search:hover {
+    border-color: #527ba7;
+    background: var(--tx-hover);
+}
+
+/* ==========================================
+   TABLE
+========================================== */
+
+.manage-transactions-page .transaction-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #294969;
+    border-radius: 10px;
+    background: #0b2342;
+    scrollbar-color: #345575 #0b2342;
+}
+
+.manage-transactions-page .transaction-table {
+    width: 100%;
+    min-width: 1050px;
+    margin: 0;
+
+    border-collapse: separate;
+    border-spacing: 0;
+
+    background: #0b2342;
+    color: #e7effc;
+    font-family: inherit;
+    font-size: 11px;
+}
+
+.manage-transactions-page .transaction-table th,
+.manage-transactions-page .transaction-table td {
+    padding: 15px 14px;
+    border: none;
+    border-bottom: 1px solid #203a59;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.manage-transactions-page .transaction-table th {
+    background: #102b4d;
+    color: #cfe2ff;
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.35px;
+}
+
+.manage-transactions-page .transaction-table td {
+    background: #0b2342;
+    color: #d8e5f7;
+    line-height: 1.6;
+}
+
+.manage-transactions-page .transaction-table tbody tr {
+    background: #0b2342;
+    transition: background 0.18s ease;
+}
+
+.manage-transactions-page .transaction-table tbody tr:hover td {
+    background: #102b4d;
+}
+
+.manage-transactions-page .transaction-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.manage-transactions-page .transaction-amount {
+    color: #ffffff;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================
+   PAYMENT STATUS
+========================================== */
+
+.manage-transactions-page .payment-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 76px;
+    padding: 6px 10px;
+
+    border: 1px solid transparent;
+    border-radius: 20px;
+
+    font-size: 10px;
+    font-weight: 750;
+    line-height: 1.4;
+    text-transform: capitalize;
+}
+
+.manage-transactions-page .status-pending {
+    border-color: rgba(242, 198, 109, 0.27);
+    background: rgba(242, 198, 109, 0.1);
+    color: #f5d48d;
+}
+
+.manage-transactions-page .status-paid {
+    border-color: rgba(49, 201, 149, 0.27);
+    background: rgba(49, 201, 149, 0.1);
+    color: #75e4bb;
+}
+
+.manage-transactions-page .status-failed {
+    border-color: rgba(240, 108, 131, 0.28);
+    background: rgba(240, 108, 131, 0.1);
+    color: #ff9eb0;
+}
+
+.manage-transactions-page .status-refunded {
+    border-color: rgba(115, 174, 255, 0.3);
+    background: rgba(57, 132, 246, 0.12);
+    color: #a7cbff;
+}
+
+.manage-transactions-page .status-unknown {
+    border-color: #38516c;
+    background: #152d48;
+    color: #bdcde0;
+}
+
+/* ==========================================
+   ACTION BUTTONS
+========================================== */
+
+.manage-transactions-page .transaction-actions-cell {
+    min-width: 185px;
+}
+
+.manage-transactions-page .transaction-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.manage-transactions-page .transaction-actions form {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.manage-transactions-page .transaction-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 31px;
+    padding: 7px 10px;
+
+    border: 1px solid transparent;
+    border-radius: 7px;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 750;
+    line-height: 1.3;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease;
+}
+
+.manage-transactions-page .transaction-action-btn:hover {
+    transform: translateY(-1px);
+}
+
+.manage-transactions-page .action-paid {
+    border-color: rgba(49, 201, 149, 0.3);
+    background: rgba(49, 201, 149, 0.12);
+    color: #7ce4bd;
+}
+
+.manage-transactions-page .action-paid:hover {
+    border-color: rgba(49, 201, 149, 0.55);
+    background: rgba(49, 201, 149, 0.2);
+}
+
+.manage-transactions-page .action-failed {
+    border-color: rgba(240, 108, 131, 0.3);
+    background: rgba(240, 108, 131, 0.1);
+    color: #ff9eaf;
+}
+
+.manage-transactions-page .action-failed:hover {
+    border-color: rgba(240, 108, 131, 0.55);
+    background: rgba(240, 108, 131, 0.18);
+}
+
+.manage-transactions-page .action-completed {
+    color: #9eb1cc;
+    font-size: 10px;
+}
+
+/* ==========================================
+   EMPTY STATE
+========================================== */
+
+.manage-transactions-page .transaction-table .empty-state {
+    padding: 48px 20px;
+    background: #0b2342;
+    color: var(--tx-muted);
+    text-align: center;
+    white-space: normal;
+}
+
+.manage-transactions-page .empty-state-icon {
+    display: grid;
+    place-items: center;
+    width: 43px;
+    height: 43px;
+    margin: 0 auto 14px;
+    border: 1px solid #294969;
+    border-radius: 12px;
+    background: #102b4d;
+    color: #8bbaff;
+    font-size: 23px;
+}
+
+.manage-transactions-page .empty-state strong {
+    display: block;
+    color: #f1f5ff;
+    font-size: 13px;
+}
+
+.manage-transactions-page .empty-state p {
+    margin: 8px 0 0;
+    color: var(--tx-muted);
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+/* ==========================================
+   PANEL FOOTER
+========================================== */
+
+.manage-transactions-page .transaction-panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 20px;
+    color: #9eb1cc;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.manage-transactions-page .back-dashboard {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #8dbbff;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.manage-transactions-page .back-dashboard:hover {
+    color: #c6dcff;
+}
+
+/* ==========================================
+   PAGE FOOTER
+========================================== */
+
+.manage-transactions-page .admin-footer {
+    margin-top: 28px;
+    padding-top: 19px;
+    border-top: 1px solid rgba(158, 177, 204, 0.12);
+    color: #7189a7;
+    font-size: 10px;
+    line-height: 1.8;
+    text-align: center;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 1250px) {
+    .manage-transactions-page .admin-content {
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    .manage-transactions-page .admin-topbar {
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    .manage-transactions-page .transaction-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .manage-transactions-page .transaction-panel {
+        padding: 22px;
+    }
+}
+
+@media (max-width: 760px) {
+    .manage-transactions-page .sidebar,
+    .manage-transactions-page .admin-sidebar {
+        position: relative;
+        bottom: auto;
+        width: 100%;
+        height: auto;
+        max-height: none;
+        padding: 18px;
+        overflow: visible;
+    }
+
+    .manage-transactions-page .sidebar-bottom {
+        margin-top: 22px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(158, 177, 204, 0.12);
+    }
+
+    .manage-transactions-page .main-content,
+    .manage-transactions-page .admin-main {
+        margin-left: 0;
+    }
+
+    .manage-transactions-page .admin-topbar {
+        align-items: flex-start;
+        padding: 19px 18px;
+    }
+
+    .manage-transactions-page .admin-topbar h2 {
+        font-size: 17px;
+    }
+
+    .manage-transactions-page .admin-topbar > div:first-child p {
+        max-width: 240px;
+        font-size: 11px;
+    }
+
+    .manage-transactions-page .admin-info {
+        gap: 8px;
+    }
+
+    .manage-transactions-page .admin-info strong {
+        max-width: 105px;
+        overflow-wrap: anywhere;
+        font-size: 10px;
+    }
+
+    .manage-transactions-page .admin-info p {
+        font-size: 9px;
+    }
+
+    .manage-transactions-page .admin-content {
+        padding: 20px 16px 28px;
+    }
+
+    .manage-transactions-page .welcome-section {
+        padding: 22px 20px;
+    }
+
+    .manage-transactions-page .transaction-summary-grid {
+        gap: 11px;
+    }
+
+    .manage-transactions-page .transaction-summary-card {
+        padding: 17px;
+    }
+
+    .manage-transactions-page .transaction-summary-card strong {
+        font-size: 25px;
+    }
+
+    .manage-transactions-page .transaction-panel {
+        padding: 18px 14px;
+    }
+
+    .manage-transactions-page .admin-section-heading {
+        align-items: flex-start;
+    }
+
+    .manage-transactions-page .overview-label {
+        display: none;
+    }
+
+    .manage-transactions-page .transaction-search {
+        flex-wrap: wrap;
+    }
+
+    .manage-transactions-page .search-input-wrap {
+        flex-basis: 100%;
+    }
+
+    .manage-transactions-page .search-button,
+    .manage-transactions-page .clear-search {
+        flex: 1;
+    }
+
+    .manage-transactions-page .transaction-panel-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 420px) {
+    .manage-transactions-page .admin-info > div {
+        display: none;
+    }
+
+    .manage-transactions-page .transaction-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .manage-transactions-page .transaction-summary-card {
+        padding: 15px 13px;
+    }
+
+    .manage-transactions-page .summary-card-label {
+        font-size: 10px;
+    }
+
+    .manage-transactions-page .transaction-summary-card strong {
+        font-size: 23px;
+    }
+
+    .manage-transactions-page .transaction-panel {
+        padding: 15px 11px;
+    }
+}
+
+
+/* ==========================================
+   UNISERVE — MANAGE TRANSACTIONS
+   Match Customer Dashboard Font
+========================================== */
+
+body.admin-dashboard.manage-transactions-page,
+body.admin-dashboard.manage-transactions-page * {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
