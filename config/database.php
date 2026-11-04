@@ -94,49 +94,39 @@ class Database {
                 : "SHOW TABLES LIKE 'apk_releases'";
             $res = $pdo->query($check);
             if (!$res || $res->rowCount() === 0) {
-                // Table doesn't exist yet, run schema creation
                 self::createMissingTables($pdo, $dbType);
+            }
+
+            // Detect whether users table has 'user_id' or 'id'
+            $idCol = 'id';
+            $pwdCol = 'password_hash';
+            try {
+                $colCheck = $pdo->query("SELECT user_id, password FROM users LIMIT 1");
+                if ($colCheck) {
+                    $idCol = 'user_id';
+                    $pwdCol = 'password';
+                }
+            } catch (Throwable) {
+                $idCol = 'id';
+                $pwdCol = 'password_hash';
             }
 
             // Guarantee Super Admin seed exists with known standard password: 'password123'
             $adminEmail = 'admin@uniserve.com';
             $knownAdminHash = '$2y$10$qCN028Kmx9ve1Z4lZelB5ejA.XCnyDxaRaW.ibMkzlKneazgErJYG'; // password123
 
-            $stmt = $pdo->prepare("SELECT id, password_hash, role FROM users WHERE email = ? LIMIT 1");
+            $stmt = $pdo->prepare("SELECT {$idCol} AS id, {$pwdCol} AS pwd, role FROM users WHERE email = ? LIMIT 1");
             $stmt->execute([$adminEmail]);
             $adm = $stmt->fetch();
 
             if ($adm) {
-                if (!password_verify('password123', (string)$adm['password_hash']) || $adm['role'] !== 'admin') {
-                    $upd = $pdo->prepare("UPDATE users SET password_hash = ?, role = 'admin', status = 'active' WHERE id = ?");
+                if (!password_verify('password123', (string)$adm['pwd']) || $adm['role'] !== 'admin') {
+                    $upd = $pdo->prepare("UPDATE users SET {$pwdCol} = ?, role = 'admin' WHERE {$idCol} = ?");
                     $upd->execute([$knownAdminHash, $adm['id']]);
                 }
             } else {
-                $ins = $pdo->prepare("INSERT INTO users (uuid, role, full_name, email, password_hash, status) VALUES (?, 'admin', 'UniServe Administrator', ?, ?, 'active')");
-                $ins->execute(['a0000000-0000-0000-0000-000000000001', $adminEmail, $knownAdminHash]);
-            }
-
-            // Ensure Merchant Seed exists
-            $merchantEmail = 'maryjoy@gmail.com';
-            $mStmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
-            $mStmt->execute([$merchantEmail]);
-            $merchant = $mStmt->fetch();
-            if (!$merchant) {
-                $mIns = $pdo->prepare("INSERT INTO users (uuid, role, full_name, email, password_hash, status) VALUES (?, 'merchant', 'Mary Joy Mallillin', ?, ?, 'active')");
-                $mIns->execute(['a0000000-0000-0000-0000-000000000002', $merchantEmail, $knownAdminHash]);
-                $mUserId = (int)$pdo->lastInsertId();
-
-                $pIns = $pdo->prepare("INSERT INTO merchant_profiles (user_id, business_name, business_type, address, contact_phone, is_verified) VALUES (?, 'Bean Yard Cafe & Resto', 'Food & Dining / Cafe', '123 Tan Street, Manila', '09264362738', 1)");
-                $pIns->execute([$mUserId]);
-            }
-
-            // Ensure Customer Seed exists
-            $customerEmail = 'joycerine@gmail.com';
-            $cStmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
-            $cStmt->execute([$customerEmail]);
-            if (!$cStmt->fetch()) {
-                $cIns = $pdo->prepare("INSERT INTO users (uuid, role, full_name, email, password_hash, status) VALUES (?, 'customer', 'Joycerine Galapon', ?, ?, 'active')");
-                $cIns->execute(['a0000000-0000-0000-0000-000000000003', $customerEmail, $knownAdminHash]);
+                $ins = $pdo->prepare("INSERT INTO users (full_name, email, {$pwdCol}, role) VALUES ('UniServe Administrator', ?, ?, 'admin')");
+                $ins->execute([$adminEmail, $knownAdminHash]);
             }
 
         } catch (Throwable $e) {
@@ -163,51 +153,9 @@ class Database {
                         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
                     );
 
-                    CREATE TABLE IF NOT EXISTS merchant_profiles (
-                        id SERIAL PRIMARY KEY,
-                        user_id INT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-                        business_name VARCHAR(150) NOT NULL,
-                        business_type VARCHAR(100) NOT NULL DEFAULT 'General Services',
-                        description TEXT NULL,
-                        address VARCHAR(255) NULL,
-                        contact_phone VARCHAR(30) NULL,
-                        opening_time TIME NULL,
-                        closing_time TIME NULL,
-                        is_verified BOOLEAN NOT NULL DEFAULT TRUE,
-                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-                    );
-
-                    CREATE TABLE IF NOT EXISTS catalog_items (
-                        id SERIAL PRIMARY KEY,
-                        merchant_id INT NOT NULL REFERENCES merchant_profiles(id) ON DELETE CASCADE,
-                        category_id INT NULL,
-                        item_type VARCHAR(20) NOT NULL DEFAULT 'product',
-                        name VARCHAR(150) NOT NULL,
-                        sku VARCHAR(50) NULL,
-                        description TEXT NULL,
-                        price NUMERIC(10,2) NOT NULL DEFAULT 0.00,
-                        image_url VARCHAR(255) NULL,
-                        duration_minutes INT NULL,
-                        max_capacity INT NULL,
-                        is_available BOOLEAN NOT NULL DEFAULT TRUE,
-                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-                    );
-
-                    CREATE TABLE IF NOT EXISTS inventory (
-                        id SERIAL PRIMARY KEY,
-                        item_id INT NOT NULL UNIQUE REFERENCES catalog_items(id) ON DELETE CASCADE,
-                        stock_quantity INT NOT NULL DEFAULT 0,
-                        reserved_quantity INT NOT NULL DEFAULT 0,
-                        low_stock_threshold INT NOT NULL DEFAULT 10,
-                        unit VARCHAR(30) NOT NULL DEFAULT 'pcs',
-                        last_restocked_at TIMESTAMPTZ NULL,
-                        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-                    );
-
                     CREATE TABLE IF NOT EXISTS inventory_logs (
                         id SERIAL PRIMARY KEY,
-                        inventory_id INT NOT NULL REFERENCES inventory(id) ON DELETE CASCADE,
+                        inventory_id INT NOT NULL,
                         performed_by INT NOT NULL,
                         change_type VARCHAR(30) NOT NULL,
                         quantity_changed INT NOT NULL,
@@ -219,7 +167,7 @@ class Database {
 
                     CREATE TABLE IF NOT EXISTS auth_tokens (
                         id SERIAL PRIMARY KEY,
-                        user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                        user_id INT NOT NULL,
                         refresh_token_hash CHAR(64) NOT NULL,
                         client_platform VARCHAR(20) NOT NULL DEFAULT 'web',
                         device_info VARCHAR(255) NULL,
@@ -242,30 +190,11 @@ class Database {
                     );
                 ");
 
-                // Seed initial APK release if empty
+                // Seed initial APK release record
                 $chkApk = $pdo->query("SELECT 1 FROM apk_releases LIMIT 1");
                 if ($chkApk && $chkApk->rowCount() === 0) {
                     $pdo->exec("INSERT INTO apk_releases (version_name, version_code, file_name, file_path, file_size_bytes, sha256_checksum, release_notes, is_latest, download_count)
                         VALUES ('v1.0.0', 1, 'UniServe-v1.0.apk', 'downloads/UniServe-v1.0.apk', 15675520, '89B03C5FF2A97E5926F381FCD619E0D86BA1F664DEEAFE710087DBD07432CE53', 'Official Production Release for Merchants and Customers.', TRUE, 14)");
-                }
-
-                // Seed initial merchant profile if missing
-                $chkM = $pdo->query("SELECT 1 FROM merchant_profiles LIMIT 1");
-                if ($chkM && $chkM->rowCount() === 0) {
-                    $pdo->exec("INSERT INTO merchant_profiles (user_id, business_name, business_type, address, contact_phone, is_verified)
-                        VALUES (1, 'Bean Yard Cafe & Resto', 'Food & Dining / Cafe', '123 Tan Street, Manila', '09264362738', TRUE)");
-                }
-
-                // Seed initial catalog items if empty
-                $chkCat = $pdo->query("SELECT 1 FROM catalog_items LIMIT 1");
-                if ($chkCat && $chkCat->rowCount() === 0) {
-                    $pdo->exec("
-                        INSERT INTO catalog_items (merchant_id, item_type, name, sku, description, price, is_available) VALUES
-                        (1, 'product', 'Artisan Espresso Latte', 'BY-LATTE-01', 'Freshly brewed double espresso with velvety steamed milk.', 150.00, TRUE),
-                        (1, 'product', 'Cold Brew Reserve', 'BY-CBR-02', 'Slow-steeped 18-hour cold brew coffee.', 175.00, TRUE),
-                        (1, 'product', 'Smoked Bacon & Waffle Plate', 'BY-WAF-01', 'Crispy Belgian waffles topped with smoked bacon and maple syrup.', 260.00, TRUE),
-                        (1, 'service', 'VIP Lounge Table Reservation', 'BY-RES-VIP', 'Exclusive reserved seating for meetings and dining (up to 6 guests).', 500.00, TRUE);
-                    ");
                 }
             } else {
                 self::runSchemaMigration($pdo, $dbType);
