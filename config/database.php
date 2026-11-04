@@ -97,7 +97,7 @@ class Database {
                 self::createMissingTables($pdo, $dbType);
             }
 
-            // Detect whether users table has 'user_id' or 'id'
+            // Detect whether users table has 'user_id' or 'id' and migrate/align columns
             $idCol = 'id';
             $pwdCol = 'password_hash';
             try {
@@ -105,10 +105,35 @@ class Database {
                 if ($colCheck) {
                     $idCol = 'user_id';
                     $pwdCol = 'password';
+
+                    // Non-destructive compatibility: Add alias columns if missing
+                    if ($dbType === 'pgsql') {
+                        $pdo->exec("
+                            ALTER TABLE users ADD COLUMN IF NOT EXISTS id INT;
+                            UPDATE users SET id = user_id WHERE id IS NULL;
+                            ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
+                            UPDATE users SET password_hash = password WHERE password_hash IS NULL;
+                            ALTER TABLE users ADD COLUMN IF NOT EXISTS uuid VARCHAR(36);
+                            UPDATE users SET uuid = md5(random()::text || clock_timestamp()::text)::uuid WHERE uuid IS NULL;
+                            ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(30);
+                            ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+                            UPDATE users SET status = 'active' WHERE status IS NULL;
+                            ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT DEFAULT 0;
+                            ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ NULL;
+                        ");
+                    } else {
+                        // MySQL fallback
+                        @$pdo->exec("ALTER TABLE users ADD COLUMN id INT NULL");
+                        @$pdo->exec("UPDATE users SET id = user_id WHERE id IS NULL");
+                        @$pdo->exec("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255) NULL");
+                        @$pdo->exec("UPDATE users SET password_hash = password WHERE password_hash IS NULL");
+                        @$pdo->exec("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'");
+                        @$pdo->exec("ALTER TABLE users ADD COLUMN failed_login_attempts INT DEFAULT 0");
+                        @$pdo->exec("ALTER TABLE users ADD COLUMN locked_until DATETIME NULL");
+                    }
                 }
-            } catch (Throwable) {
-                $idCol = 'id';
-                $pwdCol = 'password_hash';
+            } catch (Throwable $e) {
+                error_log("Column check/migration note: " . $e->getMessage());
             }
 
             // Guarantee Super Admin seed exists with known standard password: 'password123'

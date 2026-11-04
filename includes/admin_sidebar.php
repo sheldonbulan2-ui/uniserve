@@ -117,6 +117,25 @@ $activeNav = $activeNav ?? 'dashboard';
             <span>Financials</span>
         </a>
 
+        <!-- 8. Inventory Logs Audit -->
+        <a class="admin-nav-link <?= $activeNav === 'inventory_logs' ? 'active' : '' ?>" href="inventory_logs.php">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            <span>Inventory Logs</span>
+        </a>
+
+        <!-- 9. APK Release Manager -->
+        <a class="admin-nav-link <?= $activeNav === 'apk_manager' ? 'active' : '' ?>" href="apk_manager.php">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span>APK Release Mgr</span>
+        </a>
+
         <div class="nav-heading" style="margin-top: 14px;">Distribution & App</div>
 
         <a class="admin-nav-link" href="download.php" target="_blank">
