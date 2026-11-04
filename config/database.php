@@ -120,6 +120,9 @@ class Database {
                             UPDATE users SET status = 'active' WHERE status IS NULL;
                             ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT DEFAULT 0;
                             ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ NULL;
+                            -- Relax users_role_check to support 'merchant' or 'business_owner'
+                            ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+                            ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'business_owner', 'merchant', 'customer'));
                         ");
                     } else {
                         // MySQL fallback
