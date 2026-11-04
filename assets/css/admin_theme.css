@@ -458,3 +458,355 @@ body.admin-body {
     color: var(--text-dim);
     text-align: center;
 }
+
+/* ==========================================================================
+   ENTERPRISE EXTENSIONS: FORMS, TOOLBARS, MODALS, PILLS & ALERTS
+   ========================================================================== */
+
+/* Flash Alerts */
+.admin-alert {
+    padding: 14px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #34d399;
+}
+
+.alert-error {
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.35);
+    color: #fb7185;
+}
+
+.alert-info {
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: #93c5fd;
+}
+
+/* Toolbar & Filters */
+.admin-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.toolbar-search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    max-width: 440px;
+}
+
+.admin-input-wrap {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.admin-input-wrap svg {
+    position: absolute;
+    left: 14px;
+    width: 16px;
+    height: 16px;
+    stroke: var(--text-dim);
+    pointer-events: none;
+}
+
+.admin-input, .admin-select, .admin-textarea {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.admin-input-with-icon {
+    padding-left: 38px;
+}
+
+.admin-input:focus, .admin-select:focus, .admin-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+    background: #0a2444;
+}
+
+.admin-select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239EB1CC'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    padding-right: 36px;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.filter-pills-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    text-decoration: none;
+    transition: all 0.18s ease;
+}
+
+.filter-pill:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.filter-pill.active {
+    color: #ffffff;
+    background: rgba(57, 132, 246, 0.2);
+    border-color: var(--accent);
+}
+
+/* Extended Badges */
+.badge-customer { background: rgba(6, 182, 212, 0.12); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+.badge-merchant { background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-admin { background: rgba(139, 92, 246, 0.12); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+.badge-available { background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-unavailable { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
+.badge-completed { background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-in_progress, .badge-in-progress { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+.badge-cancelled { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.25); }
+
+/* Buttons & Actions */
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+.action-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-icon-action {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-subtle);
+    text-decoration: none;
+    transition: all 0.18s ease;
+}
+
+.btn-icon-action svg {
+    width: 14px;
+    height: 14px;
+}
+
+.btn-icon-action:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-icon-delete:hover {
+    color: #ffffff;
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+/* Empty State */
+.admin-empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-icon-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: rgba(57, 132, 246, 0.1);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+    margin-bottom: 16px;
+}
+
+.empty-icon-wrap svg {
+    width: 28px;
+    height: 28px;
+}
+
+.admin-empty-state h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+.admin-empty-state p {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 360px;
+    margin-bottom: 18px;
+}
+
+/* Forms & Grids */
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.admin-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-form-group.full-width {
+    grid-column: span 2;
+}
+
+.admin-form-group label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.admin-form-group small {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* Modals */
+.admin-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 10, 20, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.admin-modal-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.admin-modal {
+    background: #0a2140;
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    overflow: hidden;
+    transform: scale(0.95);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-modal-backdrop.active .admin-modal {
+    transform: scale(1);
+}
+
+.admin-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.admin-modal-header h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    transition: color 0.15s ease;
+}
+
+.modal-close-btn:hover {
+    color: #ffffff;
+}
+
+.admin-modal-body {
+    padding: 24px;
+}
+
+.admin-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-subtle);
+    background: rgba(0, 0, 0, 0.15);
+}

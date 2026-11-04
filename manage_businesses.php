@@ -1,28 +1,50 @@
 <?php
-session_start();
-require_once "config.php";
+/**
+ * UniServe Enterprise Admin — Merchant & Storefront Governance
+ */
+$pageTitle = "Merchant Management";
+$pageSubtitle = "Review, verify, and moderate digital storefronts";
+$activeNav = "businesses";
 
-if (
-    !isset($_SESSION["user_id"]) ||
-    ($_SESSION["role"] ?? "") !== "admin"
-) {
-    header("Location: login.php");
-    exit();
-}
+require_once __DIR__ . '/includes/admin_header.php';
 
-function escape($value) {
-    return htmlspecialchars((string) $value, ENT_QUOTES, "UTF-8");
-}
-
-$full_name = $_SESSION["full_name"] ?? "Administrator";
-$initial = strtoupper(substr($full_name, 0, 1));
 $search = trim($_GET["search"] ?? "");
+$statusFilter = trim($_GET["status"] ?? "");
+
+$whereClauses = [];
+$params = [];
+$types = "";
+
+if ($search !== "") {
+    $whereClauses[] = "(
+        CAST(b.business_id AS TEXT) LIKE ?
+        OR CAST(b.owner_id AS TEXT) LIKE ?
+        OR u.full_name LIKE ?
+        OR c.category_name LIKE ?
+        OR b.business_name LIKE ?
+        OR b.description LIKE ?
+        OR b.address LIKE ?
+        OR b.contact_number LIKE ?
+    )";
+    $kw = "%" . $search . "%";
+    for ($i = 0; $i < 8; $i++) {
+        $params[] = $kw;
+        $types .= "s";
+    }
+}
+
+if ($statusFilter !== "" && in_array($statusFilter, ['pending', 'approved', 'rejected'], true)) {
+    $whereClauses[] = "b.status = ?";
+    $params[] = $statusFilter;
+    $types .= "s";
+}
 
 $sql = "
     SELECT
         b.business_id,
         b.owner_id,
         u.full_name AS owner_name,
+        u.email AS owner_email,
         b.category_id,
         c.category_name,
         b.business_name,
@@ -36,368 +58,211 @@ $sql = "
     LEFT JOIN categories c ON b.category_id = c.category_id
 ";
 
-if ($search !== "") {
-    $sql .= "
-        WHERE
-            CAST(b.business_id AS CHAR) LIKE ?
-            OR CAST(b.owner_id AS CHAR) LIKE ?
-            OR u.full_name LIKE ?
-            OR CAST(b.category_id AS CHAR) LIKE ?
-            OR c.category_name LIKE ?
-            OR b.business_name LIKE ?
-            OR b.description LIKE ?
-            OR b.address LIKE ?
-            OR b.contact_number LIKE ?
-            OR b.status LIKE ?
-    ";
+if (!empty($whereClauses)) {
+    $sql .= " WHERE " . implode(" AND ", $whereClauses);
 }
 
-$sql .= " ORDER BY b.business_id DESC";
+$sql .= " ORDER BY (b.status = 'pending') DESC, b.business_id DESC";
 
 $stmt = $conn->prepare($sql);
-
-if (!$stmt) {
-    error_log("Manage businesses query failed: " . $conn->error);
-    die("Unable to load business records.");
-}
-
-if ($search !== "") {
-    $keyword = "%" . $search . "%";
-    $types = str_repeat("s", 10);
-    $params = array_fill(0, 10, $keyword);
-
+if ($stmt && !empty($params)) {
     $stmt->bind_param($types, ...$params);
 }
-
-if (!$stmt->execute()) {
-    error_log("Manage businesses execution failed: " . $stmt->error);
-    die("Unable to load business records.");
+if ($stmt) {
+    $stmt->execute();
+    $result = $stmt->get_result();
 }
 
-$result = $stmt->get_result();
-$total_businesses = $result->num_rows;
+// Counts for filter pills
+$counts = ['all' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0];
+try {
+    $cRes = $conn->query("SELECT status, COUNT(*) AS c FROM businesses GROUP BY status");
+    if ($cRes) {
+        while ($row = $cRes->fetch_assoc()) {
+            $s = strtolower($row['status']);
+            $counts[$s] = (int)$row['c'];
+            $counts['all'] += (int)$row['c'];
+        }
+        $cRes->free();
+    }
+} catch (Throwable $e) {}
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Businesses | UniServe</title>
 
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/manage_businesses.css">
-</head>
-
-<body class="admin-dashboard manage-businesses-page">
-
-<div class="layout admin-layout">
-
-    <aside class="sidebar admin-sidebar">
-        <div class="brand">
-            <div class="brand-icon">U</div>
-            <div>
-                <h1>UniServe</h1>
-                <p>Business &amp; Service Management</p>
-            </div>
+<!-- FLASH NOTIFICATION IF REDIRECTED -->
+<?php if (isset($_GET['msg'])): ?>
+    <?php if ($_GET['msg'] === 'approved'): ?>
+        <div class="admin-alert alert-success">
+            <span>✓ Storefront has been approved successfully and is now active on the mobile marketplace.</span>
         </div>
-
-        <h3>Main Menu</h3>
-
-        <nav aria-label="Main navigation">
-            <a href="admin_dashboard.php">
-                <span class="nav-icon">▦</span> Dashboard
-            </a>
-
-            <a href="manage_users.php">
-                <span class="nav-icon">♙</span> Manage Users
-            </a>
-
-            <a class="active" href="manage_businesses.php" aria-current="page">
-                <span class="nav-icon">▤</span> Manage Businesses
-            </a>
-
-            <a href="manage_categories.php">
-                <span class="nav-icon">▦</span> Manage Categories
-            </a>
-
-            <a href="manage_services.php">
-                <span class="nav-icon">◇</span> Manage Services
-            </a>
-
-            <a href="manage_requests.php">
-                <span class="nav-icon">☷</span> Manage Requests
-            </a>
-
-            <a href="manage_transactions.php">
-                <span class="nav-icon">▣</span> Manage Transactions
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <h3>Account</h3>
-
-            <nav aria-label="Account navigation">
-                <a href="profile.php">
-                    <span class="nav-icon">♙</span> My Profile
-                </a>
-
-                <a class="logout-link" href="logout.php">
-                    <span class="nav-icon">↪</span> Logout
-                </a>
-            </nav>
+    <?php elseif ($_GET['msg'] === 'rejected'): ?>
+        <div class="admin-alert alert-error">
+            <span>Storefront listing has been rejected.</span>
         </div>
-    </aside>
+    <?php elseif ($_GET['msg'] === 'updated'): ?>
+        <div class="admin-alert alert-info">
+            <span>Store status updated successfully.</span>
+        </div>
+    <?php endif; ?>
+<?php endif; ?>
 
-    <main class="main-content admin-main">
-
-        <header class="admin-topbar">
-            <div>
-                <h2>Manage Businesses</h2>
-                <p>Review and manage registered businesses.</p>
-            </div>
-
-            <div class="admin-info">
-                <span class="admin-avatar">
-                    <?= escape($initial) ?>
-                </span>
-
-                <div>
-                    <strong><?= escape($full_name) ?></strong>
-                    <p>System Administrator</p>
-                </div>
-            </div>
-        </header>
-
-        <div class="admin-content">
-
-            <section class="businesses-welcome">
-                <div>
-                    <span class="businesses-eyebrow">
-                        BUSINESS MANAGEMENT
-                    </span>
-
-                    <h2>Manage Businesses</h2>
-
-                    <p>
-                        View registered businesses, review their details,
-                        and manage registration approval status.
-                    </p>
-                </div>
-            </section>
-
-            <section class="businesses-records">
-
-                <div class="businesses-section-heading">
-                    <div>
-                        <h2>Registered Businesses</h2>
-                        <p>
-                            Search and review business records and update
-                            registration status.
-                        </p>
-                    </div>
-
-                    <span class="businesses-count">
-                        <?= number_format($total_businesses) ?>
-                        <?= $total_businesses === 1 ? "record" : "records" ?>
-                    </span>
-                </div>
-<form method="GET"
-      action="manage_businesses.php"
-      class="businesses-search-form">
-
-    <div class="businesses-search-field">
-        <label for="business-search">Search businesses</label>
-        <input
-            type="search"
-            id="business-search"
-            name="search"
-            placeholder="Search by business, owner, category, address..."
-            value="<?= escape($search) ?>"
-        >
+<!-- TOOLBAR: SEARCH & STATUS FILTER PILLS -->
+<div class="admin-toolbar">
+    <div class="filter-pills-group">
+        <a href="manage_businesses.php<?= $search ? '?search=' . urlencode($search) : '' ?>" 
+           class="filter-pill <?= $statusFilter === '' ? 'active' : '' ?>">
+            All (<?= $counts['all'] ?>)
+        </a>
+        <a href="manage_businesses.php?status=pending<?= $search ? '&search=' . urlencode($search) : '' ?>" 
+           class="filter-pill <?= $statusFilter === 'pending' ? 'active' : '' ?>"
+           style="<?= $counts['pending'] > 0 ? 'color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);' : '' ?>">
+            Pending Review (<?= $counts['pending'] ?>)
+        </a>
+        <a href="manage_businesses.php?status=approved<?= $search ? '&search=' . urlencode($search) : '' ?>" 
+           class="filter-pill <?= $statusFilter === 'approved' ? 'active' : '' ?>">
+            Approved (<?= $counts['approved'] ?>)
+        </a>
+        <a href="manage_businesses.php?status=rejected<?= $search ? '&search=' . urlencode($search) : '' ?>" 
+           class="filter-pill <?= $statusFilter === 'rejected' ? 'active' : '' ?>">
+            Rejected (<?= $counts['rejected'] ?>)
+        </a>
     </div>
 
-    <button type="submit" class="business-search-button">
-        Search
-    </button>
-
-    <a href="manage_businesses.php"
-       class="business-reset-button">
-        Reset
-    </a>
-
-</form>
-                <div class="businesses-table-container">
-                    <table class="businesses-table">
-                        <thead>
-                            <tr>
-                                <th>Business ID</th>
-                                <th>Owner ID</th>
-                                <th>Owner Name</th>
-                                <th>Category ID</th>
-                                <th>Category</th>
-                                <th>Business Name</th>
-                                <th>Description</th>
-                                <th>Address</th>
-                                <th>Contact Number</th>
-                                <th>Status</th>
-                                <th>Created At</th>
-                                <th>Update Status</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                        <?php if ($total_businesses > 0): ?>
-
-                            <?php while ($business = $result->fetch_assoc()): ?>
-                                <?php
-                                $status = strtolower(
-                                    trim((string) $business["status"])
-                                );
-
-                                $status_class = in_array(
-                                    $status,
-                                    ["pending", "approved", "rejected"],
-                                    true
-                                ) ? $status : "unknown";
-                                ?>
-
-                                <tr>
-                                    <td class="business-id">
-                                        #<?= (int) $business["business_id"] ?>
-                                    </td>
-
-                                    <td>
-                                        <?= escape($business["owner_id"] ?? "N/A") ?>
-                                    </td>
-
-                                    <td>
-                                        <?= escape($business["owner_name"] ?? "Unknown") ?>
-                                    </td>
-
-                                    <td>
-                                        <?= escape($business["category_id"] ?? "N/A") ?>
-                                    </td>
-
-                                    <td>
-                                        <?= escape($business["category_name"] ?? "Uncategorized") ?>
-                                    </td>
-
-                                    <td class="business-name">
-                                        <?= escape($business["business_name"]) ?>
-                                    </td>
-
-                                    <td class="business-description">
-                                        <?= escape($business["description"] ?? "") ?>
-                                    </td>
-
-                                    <td class="business-address">
-                                        <?= escape($business["address"] ?? "") ?>
-                                    </td>
-
-                                    <td>
-                                        <?= escape($business["contact_number"] ?? "") ?>
-                                    </td>
-
-                                    <td>
-                                        <span class="business-status status-<?= escape($status_class) ?>">
-                                            <?= escape(ucfirst($status ?: "Unknown")) ?>
-                                        </span>
-                                    </td>
-
-                                    <td class="business-created">
-                                        <?php
-                                        if (!empty($business["created_at"])) {
-                                            $timestamp = strtotime($business["created_at"]);
-
-                                            echo $timestamp !== false
-                                                ? escape(date("M d, Y", $timestamp))
-                                                : "—";
-                                        } else {
-                                            echo "—";
-                                        }
-                                        ?>
-                                    </td>
-
-                                    <td>
-                                        <form
-                                            class="business-status-form"
-                                            method="POST"
-                                            action="update_business_status.php"
-                                        >
-                                            <input
-                                                type="hidden"
-                                                name="business_id"
-                                                value="<?= (int) $business["business_id"] ?>"
-                                            >
-
-                                            <select
-                                                name="status"
-                                                aria-label="Update business status"
-                                                required
-                                            >
-                                                <option value="pending"
-                                                    <?= $status === "pending" ? "selected" : "" ?>>
-                                                    Pending
-                                                </option>
-
-                                                <option value="approved"
-                                                    <?= $status === "approved" ? "selected" : "" ?>>
-                                                    Approved
-                                                </option>
-
-                                                <option value="rejected"
-                                                    <?= $status === "rejected" ? "selected" : "" ?>>
-                                                    Rejected
-                                                </option>
-                                            </select>
-
-                                            <button type="submit">Save</button>
-                                        </form>
-                                    </td>
-                                </tr>
-
-                            <?php endwhile; ?>
-
-                        <?php else: ?>
-
-                            <tr>
-                                <td colspan="12" class="businesses-empty">
-                                    <div class="businesses-empty-icon">⌕</div>
-                                    <h3>No businesses found</h3>
-                                    <p>
-                                        Try another search or check your
-                                        search keywords.
-                                    </p>
-                                </td>
-                            </tr>
-
-                        <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="businesses-panel-footer">
-                    Showing
-                    <strong><?= number_format($total_businesses) ?></strong>
-                    matching
-                    <?= $total_businesses === 1 ? "business record." : "business records." ?>
-                </div>
-
-            </section>
-
-            <footer class="admin-footer">
-                UniServe &copy; <?= date("Y") ?>
-                — Unified Business and Service Management Application
-            </footer>
-
+    <form method="GET" action="manage_businesses.php" class="toolbar-search-form">
+        <?php if ($statusFilter): ?>
+            <input type="hidden" name="status" value="<?= htmlspecialchars($statusFilter, ENT_QUOTES, 'UTF-8') ?>">
+        <?php endif; ?>
+        <div class="admin-input-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" name="search" class="admin-input admin-input-with-icon" 
+                   placeholder="Search store, owner, address, or ID..." 
+                   value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
         </div>
-    </main>
+        <button type="submit" class="btn-primary" style="padding: 10px 16px;">Search</button>
+        <?php if ($search !== '' || $statusFilter !== ''): ?>
+            <a href="manage_businesses.php" class="btn-secondary" style="padding: 10px 14px;" title="Reset filters">✕</a>
+        <?php endif; ?>
+    </form>
 </div>
 
-</body>
-</html>
+<!-- DATA TABLE PANEL -->
+<div class="admin-panel">
+    <div class="admin-panel-header">
+        <div>
+            <h3>Registered Merchant Storefronts</h3>
+            <p>Showing verified and pending merchant establishments registered on UniServe.</p>
+        </div>
+    </div>
 
-<?php
-$stmt->close();
-$conn->close();
+    <?php if (!$result || $result->num_rows === 0): ?>
+        <div class="admin-empty-state">
+            <div class="empty-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+            </div>
+            <h4>No merchants match your criteria</h4>
+            <p><?= $search ? 'Try clearing your search query or switching status filters.' : 'No businesses have registered yet.' ?></p>
+            <?php if ($search || $statusFilter): ?>
+                <a href="manage_businesses.php" class="btn-secondary">Clear Filters</a>
+            <?php endif; ?>
+        </div>
+    <?php else: ?>
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">ID</th>
+                        <th>Store Name & Details</th>
+                        <th>Proprietor</th>
+                        <th>Category</th>
+                        <th>Contact & Address</th>
+                        <th>Registration Date</th>
+                        <th>Status</th>
+                        <th style="text-align: right; width: 180px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($b = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><code style="color: var(--accent); font-weight: 700;">#<?= (int)$b["business_id"] ?></code></td>
+                            <td>
+                                <strong style="color: #ffffff; font-size: 14px;"><?= htmlspecialchars($b["business_name"] ?? '', ENT_QUOTES, 'UTF-8') ?></strong>
+                                <?php if (!empty($b["description"])): ?>
+                                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        <?= htmlspecialchars($b["description"], ENT_QUOTES, 'UTF-8') ?>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <strong style="font-size: 13px; color: var(--text-main);"><?= htmlspecialchars($b["owner_name"] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></strong>
+                                <div style="font-size: 11px; color: var(--text-dim);"><?= htmlspecialchars($b["owner_email"] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                            </td>
+                            <td>
+                                <span class="admin-badge" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--border-subtle);">
+                                    <?= htmlspecialchars($b["category_name"] ?? 'General', ENT_QUOTES, 'UTF-8') ?>
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-size: 12.5px;"><?= htmlspecialchars($b["contact_number"] ?? 'No phone', ENT_QUOTES, 'UTF-8') ?></div>
+                                <div style="font-size: 11px; color: var(--text-dim); max-width: 200px;"><?= htmlspecialchars($b["address"] ?? 'No address', ENT_QUOTES, 'UTF-8') ?></div>
+                            </td>
+                            <td>
+                                <span style="font-size: 12px; color: var(--text-muted);"><?= date("M d, Y", strtotime($b["created_at"])) ?></span>
+                            </td>
+                            <td>
+                                <span class="admin-badge badge-<?= strtolower($b["status"]) ?>">
+                                    <?= ucfirst($b["status"]) ?>
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <?php if ($b["status"] === "pending"): ?>
+                                    <div class="action-btn-group">
+                                        <a href="update_business_status.php?id=<?= $b['business_id'] ?>&status=approved" 
+                                           class="btn-sm-action btn-approve"
+                                           onclick="return confirm('Approve storefront <?= htmlspecialchars(addslashes($b['business_name']), ENT_QUOTES, 'UTF-8') ?> for live customer access?');">
+                                            ✓ Approve
+                                        </a>
+                                        <a href="update_business_status.php?id=<?= $b['business_id'] ?>&status=rejected" 
+                                           class="btn-sm-action btn-reject"
+                                           onclick="return confirm('Reject this merchant application?');">
+                                            ✕ Reject
+                                        </a>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="action-btn-group">
+                                        <?php if ($b["status"] === "approved"): ?>
+                                            <a href="update_business_status.php?id=<?= $b['business_id'] ?>&status=rejected" 
+                                               class="btn-sm-action btn-reject"
+                                               onclick="return confirm('Revoke approval for <?= htmlspecialchars(addslashes($b['business_name']), ENT_QUOTES, 'UTF-8') ?>?');">
+                                                Suspend
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="update_business_status.php?id=<?= $b['business_id'] ?>&status=approved" 
+                                               class="btn-sm-action btn-approve"
+                                               onclick="return confirm('Re-approve <?= htmlspecialchars(addslashes($b['business_name']), ENT_QUOTES, 'UTF-8') ?>?');">
+                                                Re-Approve
+                                            </a>
+                                        <?php endif; ?>
+                                        <a href="manage_services.php?business_id=<?= $b['business_id'] ?>" 
+                                           class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" title="View Services">
+                                            Services &rarr;
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+</div>
+
+<?php 
+if (isset($stmt)) { $stmt->close(); }
+require_once __DIR__ . '/includes/admin_footer.php'; 
 ?>

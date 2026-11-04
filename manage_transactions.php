@@ -1,581 +1,341 @@
 <?php
-session_start();
-require_once __DIR__ . "/config.php";
+/**
+ * UniServe Enterprise Admin — Financial Ledger & Settlement Governance
+ */
+$pageTitle = "Financials & Transactions";
+$pageSubtitle = "Audit customer payments, settlement statuses, and platform transaction ledgers";
+$activeNav = "transactions";
 
-/* Admin access protection */
-if (
-    !isset($_SESSION["user_id"]) ||
-    ($_SESSION["role"] ?? "") !== "admin"
-) {
-    header("Location: login.php");
-    exit();
-}
+require_once __DIR__ . '/includes/admin_header.php';
 
-/* Escape output */
-function escape_html($value)
-{
-    return htmlspecialchars((string) $value, ENT_QUOTES, "UTF-8");
-}
-
-/* Redirect after processing */
-function redirect_transactions($message)
-{
-    $search = trim($_POST["search"] ?? "");
-
-    $url = "manage_transactions.php?message=" . urlencode($message);
-
-    if ($search !== "") {
-        $url .= "&search=" . urlencode($search);
-    }
-
-    header("Location: " . $url);
-    exit();
-}
-
-/* CSRF token */
+/* CSRF Protection */
 if (empty($_SESSION["transactions_csrf"])) {
     $_SESSION["transactions_csrf"] = bin2hex(random_bytes(32));
 }
 
-/* Process transaction status actions */
+$alertMessage = "";
+$alertType = "info";
+
+/* Process status transitions */
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $csrfToken = $_POST["csrf_token"] ?? "";
-    $transactionId = filter_var(
-        $_POST["transaction_id"] ?? null,
-        FILTER_VALIDATE_INT
-    );
+    $transactionId = filter_var($_POST["transaction_id"] ?? null, FILTER_VALIDATE_INT);
     $newStatus = $_POST["new_status"] ?? "";
 
-    if (
-        !is_string($csrfToken) ||
-        !hash_equals($_SESSION["transactions_csrf"], $csrfToken)
-    ) {
-        redirect_transactions("invalid_token");
-    }
-
-    if (
-        !$transactionId ||
-        !in_array($newStatus, ["paid", "failed"], true)
-    ) {
-        redirect_transactions("invalid_action");
-    }
-
-    /*
-     * Only pending transactions can be updated.
-     * Confirm payment externally before choosing "paid".
-     */
-    $stmt = $conn->prepare(
-        "UPDATE transactions
-         SET payment_status = ?
-         WHERE transaction_id = ?
-           AND payment_status = 'pending'"
-    );
-
-    if (!$stmt) {
-        redirect_transactions("update_error");
-    }
-
-    $stmt->bind_param("si", $newStatus, $transactionId);
-
-    if (!$stmt->execute()) {
-        $stmt->close();
-        redirect_transactions("update_error");
-    }
-
-    $updatedRows = $stmt->affected_rows;
-    $stmt->close();
-
-    if ($updatedRows === 1) {
-        redirect_transactions(
-            $newStatus === "paid" ? "marked_paid" : "marked_failed"
-        );
-    }
-
-    redirect_transactions("not_updated");
-}
-
-/* Page data */
-$full_name = $_SESSION["full_name"] ?? "Administrator";
-$initial = strtoupper(substr($full_name, 0, 1));
-$search = trim($_GET["search"] ?? "");
-$message = $_GET["message"] ?? "";
-
-/* Allowed notification messages */
-$messages = [
-    "marked_paid" => [
-        "type" => "success",
-        "text" => "Transaction marked as paid."
-    ],
-    "marked_failed" => [
-        "type" => "warning",
-        "text" => "Transaction marked as failed."
-    ],
-    "not_updated" => [
-        "type" => "warning",
-        "text" => "No changes made. The transaction may no longer be pending."
-    ],
-    "invalid_action" => [
-        "type" => "error",
-        "text" => "Invalid transaction action."
-    ],
-    "invalid_token" => [
-        "type" => "error",
-        "text" => "Your session validation failed. Please try again."
-    ],
-    "update_error" => [
-        "type" => "error",
-        "text" => "Unable to update the transaction. Please try again."
-    ]
-];
-
-$notice = $messages[$message] ?? null;
-
-/* Read transaction records */
-$result = $conn->query(
-    "SELECT * FROM transactions ORDER BY transaction_date DESC, transaction_id DESC"
-);
-
-if (!$result) {
-    error_log("Manage transactions query failed: " . $conn->error);
-    http_response_code(500);
-    exit("Unable to load transactions. Please try again later.");
-}
-
-$fields = $result->fetch_fields();
-$transactions = [];
-
-while ($transaction = $result->fetch_assoc()) {
-    $matches = ($search === "");
-
-    if (!$matches) {
-        foreach ($transaction as $value) {
-            if (
-                $value !== null &&
-                stripos((string) $value, $search) !== false
-            ) {
-                $matches = true;
-                break;
+    if (!is_string($csrfToken) || !hash_equals($_SESSION["transactions_csrf"], $csrfToken)) {
+        $alertMessage = "Security token mismatch. Please try again.";
+        $alertType = "error";
+    } elseif (!$transactionId || !in_array($newStatus, ["paid", "failed", "refunded"], true)) {
+        $alertMessage = "Invalid transaction ID or target status specified.";
+        $alertType = "error";
+    } else {
+        $stmt = $conn->prepare("UPDATE transactions SET payment_status = ? WHERE transaction_id = ? AND payment_status = 'pending'");
+        if ($stmt) {
+            $stmt->bind_param("si", $newStatus, $transactionId);
+            $stmt->execute();
+            if ($stmt->affected_rows > 0) {
+                $alertMessage = "Transaction #TXN-{$transactionId} marked as " . strtoupper($newStatus) . " successfully.";
+                $alertType = "success";
+            } else {
+                $alertMessage = "Transaction could not be updated. Only pending transactions can be changed.";
+                $alertType = "error";
             }
+            $stmt->close();
         }
     }
+}
 
-    if ($matches) {
-        $transactions[] = $transaction;
+$search = trim($_GET["search"] ?? "");
+$statusFilter = trim($_GET["status"] ?? "");
+
+$whereClauses = [];
+$params = [];
+$types = "";
+
+if ($search !== "") {
+    $whereClauses[] = "(
+        CAST(t.transaction_id AS TEXT) LIKE ?
+        OR CAST(t.request_id AS TEXT) LIKE ?
+        OR u.full_name LIKE ?
+        OR s.service_name LIKE ?
+        OR t.payment_method LIKE ?
+    )";
+    $kw = "%" . $search . "%";
+    for ($i = 0; $i < 5; $i++) {
+        $params[] = $kw;
+        $types .= "s";
     }
 }
 
-$result->free();
+if ($statusFilter !== "" && in_array($statusFilter, ['pending', 'paid', 'failed', 'refunded'], true)) {
+    $whereClauses[] = "t.payment_status = ?";
+    $params[] = $statusFilter;
+    $types .= "s";
+}
 
-$totalTransactions = count($transactions);
-$totalColumns = count($fields) + 1;
+$sql = "
+    SELECT
+        t.transaction_id,
+        t.request_id,
+        t.amount,
+        t.payment_method,
+        t.payment_status,
+        t.transaction_date,
+        u.full_name AS customer_name,
+        s.service_name
+    FROM transactions t
+    LEFT JOIN service_requests r ON t.request_id = r.request_id
+    LEFT JOIN users u ON r.customer_id = u.user_id
+    LEFT JOIN services s ON r.service_id = s.service_id
+";
 
-/* Count statuses among the displayed records */
-$statusCounts = [
-    "pending" => 0,
-    "paid" => 0,
-    "failed" => 0,
-    "refunded" => 0
+if (!empty($whereClauses)) {
+    $sql .= " WHERE " . implode(" AND ", $whereClauses);
+}
+
+$sql .= " ORDER BY (t.payment_status = 'pending') DESC, t.transaction_id DESC";
+
+$stmt = $conn->prepare($sql);
+if ($stmt && !empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+if ($stmt) {
+    $stmt->execute();
+    $result = $stmt->get_result();
+}
+
+// Financial KPI summaries
+$kpis = [
+    'volume' => 0.00,
+    'paid' => 0.00,
+    'pending' => 0.00,
+    'failed' => 0.00,
+    'count_pending' => 0
 ];
 
-foreach ($transactions as $transaction) {
-    $status = strtolower((string) ($transaction["payment_status"] ?? ""));
-
-    if (isset($statusCounts[$status])) {
-        $statusCounts[$status]++;
+try {
+    $sumRes = $conn->query("
+        SELECT 
+            payment_status, 
+            COUNT(*) AS c, 
+            COALESCE(SUM(amount), 0) AS s 
+        FROM transactions 
+        GROUP BY payment_status
+    ");
+    if ($sumRes) {
+        while ($row = $sumRes->fetch_assoc()) {
+            $s = strtolower($row['payment_status']);
+            $amt = (float)$row['s'];
+            $kpis['volume'] += $amt;
+            if ($s === 'paid') $kpis['paid'] += $amt;
+            if ($s === 'pending') {
+                $kpis['pending'] += $amt;
+                $kpis['count_pending'] = (int)$row['c'];
+            }
+            if ($s === 'failed') $kpis['failed'] += $amt;
+        }
+        $sumRes->free();
     }
-}
+} catch (Throwable $e) {}
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Manage Transactions | UniServe</title>
-   <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/manage_transactions.css?v=2">
-</head>
+<!-- FLASH NOTIFICATION -->
+<?php if ($alertMessage): ?>
+    <div class="admin-alert alert-<?= $alertType ?>">
+        <span><?= htmlspecialchars($alertMessage, ENT_QUOTES, 'UTF-8') ?></span>
+    </div>
+<?php endif; ?>
 
-<body class="admin-dashboard manage-transactions-page">
-
-<div class="layout admin-layout">
-
-    <aside class="sidebar admin-sidebar">
-
-        <div class="brand">
-            <div class="brand-icon">U</div>
-            <div>
-                <h1>UniServe</h1>
-                <p>Business &amp; Service Management</p>
+<!-- FINANCIAL METRICS -->
+<div class="admin-stat-grid" style="margin-bottom: 24px;">
+    <div class="admin-kpi-card">
+        <div class="admin-kpi-header">
+            <span>SETTLED REVENUE</span>
+            <div class="admin-kpi-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.14);">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
             </div>
         </div>
+        <div class="admin-kpi-number" style="color: #34d399;">₱<?= number_format($kpis['paid'], 2) ?></div>
+        <div class="admin-kpi-desc">Confirmed & Succeeded Payments</div>
+    </div>
 
-        <h3>Main Menu</h3>
-
-        <nav aria-label="Main navigation">
-            <a href="admin_dashboard.php">
-                <span class="nav-icon">▦</span> Dashboard
-            </a>
-
-            <a href="manage_users.php">
-                <span class="nav-icon">♙</span> Manage Users
-            </a>
-
-            <a href="manage_businesses.php">
-                <span class="nav-icon">▤</span> Manage Businesses
-            </a>
-
-            <a href="manage_categories.php">
-                <span class="nav-icon">▦</span> Manage Categories
-            </a>
-
-            <a href="manage_services.php">
-                <span class="nav-icon">◇</span> Manage Services
-            </a>
-
-            <a href="manage_requests.php">
-                <span class="nav-icon">☷</span> Manage Requests
-            </a>
-
-            <a class="active" href="manage_transactions.php">
-                <span class="nav-icon">▣</span> Manage Transactions
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <h3>Account</h3>
-
-            <nav aria-label="Account navigation">
-                <a href="profile.php">
-                    <span class="nav-icon">♙</span> My Profile
-                </a>
-
-                <a class="logout-link" href="logout.php">
-                    <span class="nav-icon">↪</span> Logout
-                </a>
-            </nav>
-        </div>
-
-    </aside>
-
-    <main class="main-content admin-main">
-
-        <header class="admin-topbar">
-            <div>
-                <h2>Manage Transactions</h2>
-                <p>View and monitor transaction records in UniServe</p>
+    <div class="admin-kpi-card">
+        <div class="admin-kpi-header">
+            <span>PENDING SETTLEMENTS</span>
+            <div class="admin-kpi-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.14);">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
             </div>
-
-            <div class="admin-info">
-                <span class="admin-avatar">
-                    <?= escape_html($initial) ?>
-                </span>
-
-                <div>
-                    <strong><?= escape_html($full_name) ?></strong>
-                    <p>System Administrator</p>
-                </div>
-            </div>
-        </header>
-
-        <div class="admin-content">
-
-            <section class="welcome-section">
-                <div class="welcome-copy">
-                    <span class="welcome-label">UNISERVE ADMINISTRATION</span>
-
-                    <h2>Manage Transactions</h2>
-
-                    <p>
-                        Review payment records, check transaction statuses,
-                        and manage pending payment records.
-                    </p>
-                </div>
-            </section>
-
-            <?php if ($notice !== null): ?>
-                <div
-                    class="transaction-notice notice-<?= escape_html($notice["type"]) ?>"
-                    role="status"
-                >
-                    <?= escape_html($notice["text"]) ?>
-                </div>
-            <?php endif; ?>
-
-            <!-- Transaction overview -->
-            <section class="transaction-summary-grid">
-
-                <article class="transaction-summary-card">
-                    <span class="summary-card-label">Total Records</span>
-                    <strong><?= number_format($totalTransactions) ?></strong>
-                    <small>
-                        <?= $search !== "" ? "Matching your search" : "All transactions" ?>
-                    </small>
-                </article>
-
-                <article class="transaction-summary-card summary-pending">
-                    <span class="summary-card-label">Pending</span>
-                    <strong><?= number_format($statusCounts["pending"]) ?></strong>
-                    <small>Awaiting verification</small>
-                </article>
-
-                <article class="transaction-summary-card summary-paid">
-                    <span class="summary-card-label">Paid</span>
-                    <strong><?= number_format($statusCounts["paid"]) ?></strong>
-                    <small>Marked as paid</small>
-                </article>
-
-                <article class="transaction-summary-card summary-failed">
-                    <span class="summary-card-label">Failed</span>
-                    <strong><?= number_format($statusCounts["failed"]) ?></strong>
-                    <small>Failed transactions</small>
-                </article>
-
-            </section>
-
-            <section class="transaction-panel">
-
-                <div class="admin-section-heading">
-                    <div>
-                        <h2>Transactions List</h2>
-                        <p>
-                            Search records and review payment status.
-                        </p>
-                    </div>
-
-                    <span class="overview-label">TRANSACTION RECORDS</span>
-                </div>
-
-                <form
-                    method="GET"
-                    action="manage_transactions.php"
-                    class="transaction-search"
-                >
-                    <div class="search-input-wrap">
-                        <input
-                            type="search"
-                            name="search"
-                            placeholder="Search transaction records..."
-                            value="<?= escape_html($search) ?>"
-                            aria-label="Search transaction records"
-                        >
-                    </div>
-
-                    <button type="submit" class="search-button">
-                        Search
-                    </button>
-
-                    <?php if ($search !== ""): ?>
-                        <a
-                            href="manage_transactions.php"
-                            class="clear-search"
-                        >
-                            Clear
-                        </a>
-                    <?php endif; ?>
-                </form>
-
-                <div class="transaction-table-wrap">
-                    <table class="transaction-table">
-
-                        <thead>
-                            <tr>
-                                <?php foreach ($fields as $field): ?>
-                                    <th>
-                                        <?= escape_html(
-                                            ucwords(
-                                                str_replace(
-                                                    "_",
-                                                    " ",
-                                                    $field->name
-                                                )
-                                            )
-                                        ) ?>
-                                    </th>
-                                <?php endforeach; ?>
-
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            <?php if (!empty($transactions)): ?>
-
-                                <?php foreach ($transactions as $transaction): ?>
-                                    <?php
-                                    $status = strtolower(
-                                        (string) ($transaction["payment_status"] ?? "")
-                                    );
-
-                                    $statusClass = in_array(
-                                        $status,
-                                        ["pending", "paid", "failed", "refunded"],
-                                        true
-                                    ) ? $status : "unknown";
-                                    ?>
-
-                                    <tr>
-                                        <?php foreach ($transaction as $column => $value): ?>
-                                            <td>
-                                                <?php if ($column === "payment_status"): ?>
-                                                    <span class="payment-status status-<?= escape_html($statusClass) ?>">
-                                                        <?= escape_html(ucfirst($status !== "" ? $status : "Unknown")) ?>
-                                                    </span>
-                                                <?php elseif ($column === "amount"): ?>
-                                                    <span class="transaction-amount">
-                                                        ₱<?= escape_html(number_format((float) $value, 2)) ?>
-                                                    </span>
-                                                <?php else: ?>
-                                                    <?= escape_html($value ?? "—") ?>
-                                                <?php endif; ?>
-                                            </td>
-                                        <?php endforeach; ?>
-
-                                        <td class="transaction-actions-cell">
-                                            <?php if ($status === "pending"): ?>
-
-                                                <div class="transaction-actions">
-
-                                                    <form
-                                                        method="POST"
-                                                        action="manage_transactions.php"
-                                                        onsubmit="return confirm('Confirm that payment has been received and verified before marking this transaction as paid?');"
-                                                    >
-                                                        <input
-                                                            type="hidden"
-                                                            name="csrf_token"
-                                                            value="<?= escape_html($_SESSION["transactions_csrf"]) ?>"
-                                                        >
-
-                                                        <input
-                                                            type="hidden"
-                                                            name="transaction_id"
-                                                            value="<?= (int) $transaction["transaction_id"] ?>"
-                                                        >
-
-                                                        <input
-                                                            type="hidden"
-                                                            name="new_status"
-                                                            value="paid"
-                                                        >
-
-                                                        <input
-                                                            type="hidden"
-                                                            name="search"
-                                                            value="<?= escape_html($search) ?>"
-                                                        >
-
-                                                        <button
-                                                            type="submit"
-                                                            class="transaction-action-btn action-paid"
-                                                        >
-                                                            Mark as Paid
-                                                        </button>
-                                                    </form>
-
-                                                    <form
-                                                        method="POST"
-                                                        action="manage_transactions.php"
-                                                        onsubmit="return confirm('Mark this pending transaction as failed?');"
-                                                    >
-                                                        <input
-                                                            type="hidden"
-                                                            name="csrf_token"
-                                                            value="<?= escape_html($_SESSION["transactions_csrf"]) ?>"
-                                                        >
-
-                                                        <input
-                                                            type="hidden"
-                                                            name="transaction_id"
-                                                            value="<?= (int) $transaction["transaction_id"] ?>"
-                                                        >
-
-                                                        <input
-                                                            type="hidden"
-                                                            name="new_status"
-                                                            value="failed"
-                                                        >
-
-                                                        <input
-                                                            type="hidden"
-                                                            name="search"
-                                                            value="<?= escape_html($search) ?>"
-                                                        >
-
-                                                        <button
-                                                            type="submit"
-                                                            class="transaction-action-btn action-failed"
-                                                        >
-                                                            Mark as Failed
-                                                        </button>
-                                                    </form>
-
-                                                </div>
-
-                                            <?php else: ?>
-                                                <span class="action-completed">
-                                                    No actions available
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-
-                                <?php endforeach; ?>
-
-                            <?php else: ?>
-                                <tr>
-                                    <td
-                                        colspan="<?= $totalColumns ?>"
-                                        class="empty-state"
-                                    >
-                                        <div class="empty-state-icon">⌕</div>
-
-                                        <?php if ($search !== ""): ?>
-                                            <strong>No matching transactions</strong>
-                                            <p>Try a different keyword.</p>
-                                        <?php else: ?>
-                                            <strong>No transactions found</strong>
-                                            <p>
-                                                Transaction records will appear
-                                                here when available.
-                                            </p>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-
-                    </table>
-                </div>
-
-                <div class="transaction-panel-footer">
-                    <span>
-                        Showing <?= number_format($totalTransactions) ?>
-                        transaction(s)
-                    </span>
-
-                    <a
-                        href="admin_dashboard.php"
-                        class="back-dashboard"
-                    >
-                        ← Back to Dashboard
-                    </a>
-                </div>
-
-            </section>
-
-            <footer class="admin-footer">
-                UniServe &copy; <?= date("Y") ?>
-                — Unified Business and Service Management Application
-            </footer>
-
         </div>
-    </main>
+        <div class="admin-kpi-number" style="color: #fbbf24;">₱<?= number_format($kpis['pending'], 2) ?></div>
+        <div class="admin-kpi-desc"><?= $kpis['count_pending'] ?> Pending Collection(s)</div>
+    </div>
 
+    <div class="admin-kpi-card">
+        <div class="admin-kpi-header">
+            <span>TOTAL GROSS VOLUME</span>
+            <div class="admin-kpi-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
+            </div>
+        </div>
+        <div class="admin-kpi-number">₱<?= number_format($kpis['volume'], 2) ?></div>
+        <div class="admin-kpi-desc">All Transaction Records Combined</div>
+    </div>
 </div>
 
-</body>
-</html>
-<?php
-$conn->close();
+<!-- TOOLBAR: SEARCH & STATUS PILLS -->
+<div class="admin-toolbar">
+    <div class="filter-pills-group">
+        <a href="manage_transactions.php<?= $search ? '?search=' . urlencode($search) : '' ?>" 
+           class="filter-pill <?= $statusFilter === '' ? 'active' : '' ?>">
+            All Transactions
+        </a>
+        <a href="manage_transactions.php?status=pending<?= $search ? '&search=' . urlencode($search) : '' ?>" 
+           class="filter-pill <?= $statusFilter === 'pending' ? 'active' : '' ?>"
+           style="<?= $kpis['count_pending'] > 0 ? 'color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);' : '' ?>">
+            Pending (<?= $kpis['count_pending'] ?>)
+        </a>
+        <a href="manage_transactions.php?status=paid<?= $search ? '&search=' . urlencode($search) : '' ?>" 
+           class="filter-pill <?= $statusFilter === 'paid' ? 'active' : '' ?>">
+            Paid
+        </a>
+        <a href="manage_transactions.php?status=failed<?= $search ? '&search=' . urlencode($search) : '' ?>" 
+           class="filter-pill <?= $statusFilter === 'failed' ? 'active' : '' ?>">
+            Failed
+        </a>
+    </div>
+
+    <form method="GET" action="manage_transactions.php" class="toolbar-search-form">
+        <?php if ($statusFilter): ?>
+            <input type="hidden" name="status" value="<?= htmlspecialchars($statusFilter, ENT_QUOTES, 'UTF-8') ?>">
+        <?php endif; ?>
+        <div class="admin-input-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" name="search" class="admin-input admin-input-with-icon" 
+                   placeholder="Search transaction ID, order, method..." 
+                   value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
+        </div>
+        <button type="submit" class="btn-primary" style="padding: 10px 16px;">Search</button>
+        <?php if ($search !== '' || $statusFilter !== ''): ?>
+            <a href="manage_transactions.php" class="btn-secondary" style="padding: 10px 14px;" title="Reset filters">✕</a>
+        <?php endif; ?>
+    </form>
+</div>
+
+<!-- TRANSACTIONS TABLE PANEL -->
+<div class="admin-panel">
+    <div class="admin-panel-header">
+        <div>
+            <h3>Platform Financial Audit Ledger</h3>
+            <p>Immutable record of payment transactions generated from mobile bookings.</p>
+        </div>
+    </div>
+
+    <?php if (!$result || $result->num_rows === 0): ?>
+        <div class="admin-empty-state">
+            <div class="empty-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
+            </div>
+            <h4>No transactions match your criteria</h4>
+            <p><?= $search ? 'Try clearing your search query or switching status filters.' : 'No financial transactions recorded yet.' ?></p>
+        </div>
+    <?php else: ?>
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Txn ID</th>
+                        <th>Associated Order</th>
+                        <th>Customer & Service</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Timestamp</th>
+                        <th>Settlement Status</th>
+                        <th style="text-align: right; width: 140px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($t = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><code style="color: var(--accent); font-weight: 700;">#TXN-<?= (int)$t["transaction_id"] ?></code></td>
+                            <td>
+                                <a href="manage_requests.php?search=<?= (int)$t['request_id'] ?>" 
+                                   style="color: #60a5fa; text-decoration: none; font-weight: 600;">
+                                    #ORD-<?= (int)$t["request_id"] ?>
+                                </a>
+                            </td>
+                            <td>
+                                <strong style="color: #ffffff; font-size: 13.5px;">
+                                    <?= htmlspecialchars($t["customer_name"] ?? 'Anonymous Customer', ENT_QUOTES, 'UTF-8') ?>
+                                </strong>
+                                <div style="font-size: 11px; color: var(--text-dim);"><?= htmlspecialchars($t["service_name"] ?? 'Service Item', ENT_QUOTES, 'UTF-8') ?></div>
+                            </td>
+                            <td>
+                                <strong style="color: #38bdf8; font-size: 14px;">
+                                    ₱<?= number_format((float)$t["amount"], 2) ?>
+                                </strong>
+                            </td>
+                            <td>
+                                <span class="admin-badge" style="background: rgba(255, 255, 255, 0.04); color: var(--text-main); border: 1px solid var(--border-subtle);">
+                                    <?= htmlspecialchars($t["payment_method"] ?? 'Cash', ENT_QUOTES, 'UTF-8') ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-size: 12px; color: var(--text-muted);"><?= date("M d, Y h:i A", strtotime($t["transaction_date"])) ?></span>
+                            </td>
+                            <td>
+                                <span class="admin-badge badge-<?= strtolower($t["payment_status"]) ?>">
+                                    <?= ucfirst($t["payment_status"]) ?>
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <?php if ($t["payment_status"] === "pending"): ?>
+                                    <div class="action-btn-group">
+                                        <form method="POST" action="manage_transactions.php" style="display: inline;">
+                                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['transactions_csrf'] ?>">
+                                            <input type="hidden" name="transaction_id" value="<?= (int)$t['transaction_id'] ?>">
+                                            <input type="hidden" name="new_status" value="paid">
+                                            <button type="submit" class="btn-sm-action btn-approve" title="Mark as Paid">
+                                                ✓ Settle
+                                            </button>
+                                        </form>
+
+                                        <form method="POST" action="manage_transactions.php" style="display: inline;" 
+                                              onsubmit="return confirm('Flag transaction #TXN-<?= (int)$t['transaction_id'] ?> as Failed?');">
+                                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['transactions_csrf'] ?>">
+                                            <input type="hidden" name="transaction_id" value="<?= (int)$t['transaction_id'] ?>">
+                                            <input type="hidden" name="new_status" value="failed">
+                                            <button type="submit" class="btn-sm-action btn-reject" title="Mark as Failed">
+                                                ✕
+                                            </button>
+                                        </form>
+                                    </div>
+                                <?php else: ?>
+                                    <span style="font-size: 11px; color: var(--text-dim); font-style: italic;">Settled</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+</div>
+
+<?php 
+if (isset($stmt)) { $stmt->close(); }
+require_once __DIR__ . '/includes/admin_footer.php'; 
 ?>

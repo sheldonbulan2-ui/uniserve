@@ -1,22 +1,47 @@
 <?php
-session_start();
-require_once "config.php";
+/**
+ * UniServe Enterprise Admin — Service Catalog Governance
+ */
+$pageTitle = "Service Catalog Management";
+$pageSubtitle = "Audit all marketplace offerings, rates, and operational availability";
+$activeNav = "services";
 
-if (
-    !isset($_SESSION["user_id"]) ||
-    ($_SESSION["role"] ?? "") !== "admin"
-) {
-    header("Location: login.php");
-    exit();
-}
+require_once __DIR__ . '/includes/admin_header.php';
 
-function escape($value) {
-    return htmlspecialchars((string) $value, ENT_QUOTES, "UTF-8");
-}
-
-$adminName = $_SESSION["full_name"] ?? "Administrator";
-$adminInitial = strtoupper(substr($adminName, 0, 1));
 $search = trim($_GET["search"] ?? "");
+$businessId = filter_var($_GET["business_id"] ?? null, FILTER_VALIDATE_INT);
+$availabilityFilter = trim($_GET["availability"] ?? "");
+
+$whereClauses = [];
+$params = [];
+$types = "";
+
+if ($search !== "") {
+    $whereClauses[] = "(
+        s.service_name LIKE ?
+        OR s.description LIKE ?
+        OR b.business_name LIKE ?
+        OR CAST(s.service_id AS TEXT) LIKE ?
+        OR CAST(s.business_id AS TEXT) LIKE ?
+    )";
+    $kw = "%" . $search . "%";
+    for ($i = 0; $i < 5; $i++) {
+        $params[] = $kw;
+        $types .= "s";
+    }
+}
+
+if ($businessId) {
+    $whereClauses[] = "s.business_id = ?";
+    $params[] = $businessId;
+    $types .= "i";
+}
+
+if ($availabilityFilter !== "" && in_array($availabilityFilter, ['available', 'unavailable'], true)) {
+    $whereClauses[] = "s.availability = ?";
+    $params[] = $availabilityFilter;
+    $types .= "s";
+}
 
 $sql = "
     SELECT
@@ -27,355 +52,169 @@ $sql = "
         s.price,
         s.availability,
         s.created_at,
-        b.business_name
+        b.business_name,
+        b.status AS business_status
     FROM services s
-    LEFT JOIN businesses b
-        ON s.business_id = b.business_id
+    LEFT JOIN businesses b ON s.business_id = b.business_id
 ";
 
-if ($search !== "") {
-    $sql .= "
-        WHERE s.service_name LIKE ?
-           OR s.description LIKE ?
-           OR s.availability LIKE ?
-           OR b.business_name LIKE ?
-           OR CAST(s.business_id AS CHAR) LIKE ?
-    ";
+if (!empty($whereClauses)) {
+    $sql .= " WHERE " . implode(" AND ", $whereClauses);
 }
 
 $sql .= " ORDER BY s.service_id DESC";
 
 $stmt = $conn->prepare($sql);
-
-if (!$stmt) {
-    die("Unable to load services. Please check the database structure.");
+if ($stmt && !empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+if ($stmt) {
+    $stmt->execute();
+    $result = $stmt->get_result();
 }
 
-if ($search !== "") {
-    $term = "%" . $search . "%";
-    $stmt->bind_param(
-        "sssss",
-        $term,
-        $term,
-        $term,
-        $term,
-        $term
-    );
-}
-
-if (!$stmt->execute()) {
-    die("Unable to load services.");
-}
-
-$result = $stmt->get_result();
-$totalServices = $result->num_rows;
+// Counts for filter pills
+$availCounts = ['all' => 0, 'available' => 0, 'unavailable' => 0];
+try {
+    $cRes = $conn->query("SELECT availability, COUNT(*) as c FROM services GROUP BY availability");
+    if ($cRes) {
+        while ($row = $cRes->fetch_assoc()) {
+            $a = strtolower($row['availability']);
+            $availCounts[$a] = (int)$row['c'];
+            $availCounts['all'] += (int)$row['c'];
+        }
+        $cRes->free();
+    }
+} catch (Throwable $e) {}
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- TOOLBAR: SEARCH & STATUS PILLS -->
+<div class="admin-toolbar">
+    <div class="filter-pills-group">
+        <a href="manage_services.php<?= $businessId ? '?business_id=' . $businessId : '' ?>" 
+           class="filter-pill <?= $availabilityFilter === '' ? 'active' : '' ?>">
+            All Services (<?= $availCounts['all'] ?>)
+        </a>
+        <a href="manage_services.php?availability=available<?= $businessId ? '&business_id=' . $businessId : '' ?>" 
+           class="filter-pill <?= $availabilityFilter === 'available' ? 'active' : '' ?>">
+            Available (<?= $availCounts['available'] ?>)
+        </a>
+        <a href="manage_services.php?availability=unavailable<?= $businessId ? '&business_id=' . $businessId : '' ?>" 
+           class="filter-pill <?= $availabilityFilter === 'unavailable' ? 'active' : '' ?>">
+            Unavailable (<?= $availCounts['unavailable'] ?>)
+        </a>
+    </div>
 
-    <title>Manage Services | UniServe</title>
-
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/manage_services.css">
-</head>
-
-<body class="admin-dashboard manage-services-page">
-
-<div class="layout admin-layout">
-
-    <aside class="sidebar admin-sidebar">
-
-        <div class="brand">
-            <div class="brand-icon">U</div>
-            <div>
-                <h1>UniServe</h1>
-                <p>Business &amp; Service Management</p>
-            </div>
+    <form method="GET" action="manage_services.php" class="toolbar-search-form">
+        <?php if ($businessId): ?>
+            <input type="hidden" name="business_id" value="<?= (int)$businessId ?>">
+        <?php endif; ?>
+        <?php if ($availabilityFilter): ?>
+            <input type="hidden" name="availability" value="<?= htmlspecialchars($availabilityFilter, ENT_QUOTES, 'UTF-8') ?>">
+        <?php endif; ?>
+        <div class="admin-input-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" name="search" class="admin-input admin-input-with-icon" 
+                   placeholder="Search service name, merchant, or ID..." 
+                   value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
         </div>
-
-        <h3>Main Menu</h3>
-
-        <nav aria-label="Main navigation">
-            <a href="admin_dashboard.php">
-                <span class="nav-icon">▦</span> Dashboard
-            </a>
-
-            <a href="manage_users.php">
-                <span class="nav-icon">♙</span> Manage Users
-            </a>
-
-            <a href="manage_businesses.php">
-                <span class="nav-icon">▤</span> Manage Businesses
-            </a>
-
-            <a href="manage_categories.php">
-                <span class="nav-icon">▦</span> Manage Categories
-            </a>
-
-            <a class="active" href="manage_services.php">
-                <span class="nav-icon">◇</span> Manage Services
-            </a>
-
-            <a href="manage_requests.php">
-                <span class="nav-icon">☷</span> Manage Requests
-            </a>
-
-            <a href="manage_transactions.php">
-                <span class="nav-icon">▣</span> Manage Transactions
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <h3>Account</h3>
-
-            <nav aria-label="Account navigation">
-                <a href="profile.php">
-                    <span class="nav-icon">♙</span> My Profile
-                </a>
-
-                <a class="logout-link" href="logout.php">
-                    <span class="nav-icon">↪</span> Logout
-                </a>
-            </nav>
-        </div>
-
-    </aside>
-
-    <main class="main-content admin-main">
-
-        <header class="admin-topbar">
-            <div>
-                <h2>Manage Services</h2>
-                <p>View and monitor services registered on UniServe</p>
-            </div>
-
-            <div class="admin-info">
-                <span class="admin-avatar">
-                    <?= escape($adminInitial) ?>
-                </span>
-
-                <div>
-                    <strong><?= escape($adminName) ?></strong>
-                    <p>System Administrator</p>
-                </div>
-            </div>
-        </header>
-
-        <div class="admin-content">
-
-            <section class="welcome-section">
-                <div class="welcome-copy">
-                    <span class="welcome-label">
-                        UNISERVE ADMINISTRATION
-                    </span>
-
-                    <h2>Manage Your Services</h2>
-
-                    <p>
-                        Review service details, business information,
-                        pricing, and availability from one place.
-                    </p>
-                </div>
-            </section>
-
-            <br>
-            <section class="services-table-panel">
-
-                <div class="services-table-heading">
-                    <div>
-                        <h2>Services List</h2>
-                        <p>View and search registered business services.</p>
-                    </div>
-
-                    <span class="services-count">
-                        <?= number_format($totalServices) ?>
-                        <?= $totalServices === 1 ? "Service" : "Services" ?>
-                    </span>
-                </div>
-
-                <form
-                    action="manage_services.php"
-                    method="GET"
-                    class="services-search-form"
-                >
-                    <div class="services-search-input">
-                        <input
-                            type="search"
-                            name="search"
-                            value="<?= escape($search) ?>"
-                            placeholder="Search service, business, or description..."
-                            aria-label="Search services"
-                        >
-                    </div>
-
-                    <button type="submit">Search</button>
-
-                    <?php if ($search !== ""): ?>
-                        <a class="services-clear" href="manage_services.php">
-                            Clear
-                        </a>
-                    <?php endif; ?>
-                </form>
-
-                <div class="services-table-wrap">
-                    <table class="services-table">
-                        <thead>
-                            <tr>
-                                <th>Service ID</th>
-                                <th>Business</th>
-                                <th>Service Name</th>
-                                <th>Description</th>
-                                <th>Price</th>
-                                <th>Availability</th>
-                                <th>Created At</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                        <?php if ($totalServices > 0): ?>
-
-                            <?php while ($service = $result->fetch_assoc()): ?>
-                                <?php
-                                $businessName = $service["business_name"]
-                                    ?? "Unknown Business";
-
-                                $availability = trim(
-                                    (string) ($service["availability"] ?? "")
-                                );
-
-                                $status = strtolower($availability);
-
-                                if (in_array($status, ["available", "active", "yes", "1"], true)) {
-                                    $statusClass = "available";
-                                } elseif (in_array($status, ["unavailable", "inactive", "no", "0"], true)) {
-                                    $statusClass = "unavailable";
-                                } else {
-                                    $statusClass = "other";
-                                }
-
-                                $description = trim(
-                                    (string) ($service["description"] ?? "")
-                                );
-                                ?>
-
-                                <tr>
-                                    <td>
-                                        <span class="service-id">
-                                            #<?= (int) $service["service_id"] ?>
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        <div class="business-cell">
-                                            <span class="business-avatar">
-                                                <?= escape(strtoupper(substr($businessName, 0, 1))) ?>
-                                            </span>
-
-                                            <div>
-                                                <strong><?= escape($businessName) ?></strong>
-                                                <small>
-                                                    Business ID:
-                                                    <?= (int) $service["business_id"] ?>
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        <strong class="service-name">
-                                            <?= escape($service["service_name"]) ?>
-                                        </strong>
-                                    </td>
-
-                                    <td class="description-cell">
-                                        <?= $description !== ""
-                                            ? escape($description)
-                                            : "No description" ?>
-                                    </td>
-
-                                    <td>
-                                        <strong class="service-price">
-                                            ₱<?= number_format((float) $service["price"], 2) ?>
-                                        </strong>
-                                    </td>
-
-                                    <td>
-                                        <span class="service-status <?= $statusClass ?>">
-                                            <?= escape(
-                                                $availability !== ""
-                                                    ? $availability
-                                                    : "Not specified"
-                                            ) ?>
-                                        </span>
-                                    </td>
-
-                                    <td class="created-cell">
-                                        <?= escape($service["created_at"] ?? "—") ?>
-                                    </td>
-                                </tr>
-
-                            <?php endwhile; ?>
-
-                        <?php else: ?>
-
-                            <tr>
-                                <td colspan="7">
-                                    <div class="services-empty">
-                                        <span>◇</span>
-
-                                        <h3>
-                                            <?= $search !== ""
-                                                ? "No Matching Services Found"
-                                                : "No Services Available" ?>
-                                        </h3>
-
-                                        <p>
-                                            <?= $search !== ""
-                                                ? "Try another keyword or clear your search."
-                                                : "Registered services will appear here." ?>
-                                        </p>
-
-                                        <?php if ($search !== ""): ?>
-                                            <a href="manage_services.php">Clear Search</a>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-
-                        <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="services-table-footer">
-                    <span>
-                        Showing <?= number_format($totalServices) ?>
-                        <?= $totalServices === 1 ? "record" : "records" ?>
-                    </span>
-
-                    <a href="admin_dashboard.php">← Back to Dashboard</a>
-                </div>
-
-            </section>
-
-            <footer class="admin-footer">
-                UniServe &copy; <?= date("Y") ?>
-                — Unified Business and Service Management Application
-            </footer>
-
-        </div>
-    </main>
-
+        <button type="submit" class="btn-primary" style="padding: 10px 16px;">Search</button>
+        <?php if ($search !== '' || $availabilityFilter !== '' || $businessId): ?>
+            <a href="manage_services.php" class="btn-secondary" style="padding: 10px 14px;" title="Reset filters">✕</a>
+        <?php endif; ?>
+    </form>
 </div>
 
-</body>
-</html>
+<!-- SERVICES TABLE -->
+<div class="admin-panel">
+    <div class="admin-panel-header">
+        <div>
+            <h3>Active Service Offerings</h3>
+            <p>Direct view of service catalog entries offered by verified merchants on the mobile app.</p>
+        </div>
+        <?php if ($businessId): ?>
+            <span class="admin-badge badge-admin">Filtered by Business #<?= (int)$businessId ?></span>
+        <?php endif; ?>
+    </div>
 
-<?php
-$stmt->close();
-$conn->close();
+    <?php if (!$result || $result->num_rows === 0): ?>
+        <div class="admin-empty-state">
+            <div class="empty-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+            </div>
+            <h4>No services found</h4>
+            <p><?= $search ? 'Try clearing your search query or switching availability filters.' : 'No merchant services have been listed yet.' ?></p>
+            <?php if ($search || $availabilityFilter || $businessId): ?>
+                <a href="manage_services.php" class="btn-secondary">Clear Filters</a>
+            <?php endif; ?>
+        </div>
+    <?php else: ?>
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">ID</th>
+                        <th>Service Title & Description</th>
+                        <th>Merchant Storefront</th>
+                        <th>Rate / Price</th>
+                        <th>Availability</th>
+                        <th>Date Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($s = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><code style="color: var(--accent); font-weight: 700;">#SVC-<?= (int)$s["service_id"] ?></code></td>
+                            <td>
+                                <strong style="color: #ffffff; font-size: 14px;"><?= htmlspecialchars($s["service_name"], ENT_QUOTES, 'UTF-8') ?></strong>
+                                <?php if (!empty($s["description"])): ?>
+                                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px; max-width: 380px;">
+                                        <?= htmlspecialchars($s["description"], ENT_QUOTES, 'UTF-8') ?>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <a href="manage_businesses.php?search=<?= urlencode($s['business_name'] ?? '') ?>" 
+                                   style="color: var(--text-main); font-weight: 600; text-decoration: none;">
+                                    <?= htmlspecialchars($s["business_name"] ?? 'Unknown Store', ENT_QUOTES, 'UTF-8') ?>
+                                </a>
+                                <?php if (isset($s['business_status'])): ?>
+                                    <div style="margin-top: 2px;">
+                                        <span class="admin-badge badge-<?= strtolower($s['business_status']) ?>" style="font-size: 9px; padding: 1px 6px;">
+                                            <?= ucfirst($s['business_status']) ?>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <strong style="font-size: 14px; color: #38bdf8;">
+                                    ₱<?= number_format((float)$s["price"], 2) ?>
+                                </strong>
+                            </td>
+                            <td>
+                                <span class="admin-badge badge-<?= strtolower($s["availability"]) ?>">
+                                    <?= ucfirst($s["availability"]) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-size: 12px; color: var(--text-muted);"><?= date("M d, Y", strtotime($s["created_at"])) ?></span>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+</div>
+
+<?php 
+if (isset($stmt)) { $stmt->close(); }
+require_once __DIR__ . '/includes/admin_footer.php'; 
 ?>
