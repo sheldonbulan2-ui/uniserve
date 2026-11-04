@@ -1,0 +1,13 @@
+RewriteEngine On
+RewriteBase /api/
+
+# If requesting /api/auth/... forward to /api/v1/auth/...
+RewriteRule ^auth/(.*)$ v1/auth/$1 [QSA,L]
+
+# Direct /api/v1 requests pass to v1/
+RewriteRule ^v1/(.*)$ v1/$1 [QSA,L]
+
+# Fallback for API front-controller
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]

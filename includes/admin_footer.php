@@ -14,13 +14,6 @@ if (!defined('UNISERVE_ADMIN_LAYOUT')) {
                 <div>
                     &copy; <?= date('Y') ?> <strong>UniServe Ecosystem</strong> &bull; Enterprise Governance Console v1.2.0
                 </div>
-                <div style="display: flex; gap: 16px;">
-                    <span>Database: <strong style="color: #60a5fa;">Supabase PostgreSQL</strong></span>
-                    <span>&bull;</span>
-                    <span>Server: <strong style="color: #34d399;">Render.com Docker</strong></span>
-                    <span>&bull;</span>
-                    <a href="ping.php" target="_blank" style="color: var(--text-dim); text-decoration: none;">Live Heartbeat ↗</a>
-                </div>
             </div>
         </footer>
 

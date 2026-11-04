@@ -56,13 +56,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $pdo->beginTransaction();
                 try {
-                    $ins = $pdo->prepare('INSERT INTO users (uuid, role, full_name, email, phone, password_hash, status) VALUES (?, ?, ?, ?, ?, ?, ?)');
-                    $ins->execute([$uuid, $role, $fullName, $email, $phone, $hash, 'active']);
-                    $userId = (int)$pdo->lastInsertId();
+                    $ins = $pdo->prepare('INSERT INTO users (uuid, role, full_name, email, phone, password, password_hash, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+                    $ins->execute([$uuid, $role, $fullName, $email, $phone, $hash, $hash, 'active']);
+
+                    $userId = 0;
+                    try {
+                        $userId = (int)$pdo->lastInsertId();
+                    } catch (Throwable) {}
+                    if ($userId === 0) {
+                        $idLookup = $pdo->prepare('SELECT COALESCE(id, user_id) AS uid FROM users WHERE email = ? LIMIT 1');
+                        $idLookup->execute([$email]);
+                        $userId = (int)$idLookup->fetchColumn();
+                    }
+                    try {
+                        $pdo->exec("UPDATE users SET id = user_id WHERE id IS NULL AND user_id = {$userId}");
+                    } catch (Throwable) {}
 
                     if ($role === 'merchant') {
                         $bName = $businessName !== '' ? $businessName : "{$fullName}'s Services";
-                        $mIns = $pdo->prepare('INSERT INTO merchant_profiles (user_id, business_name, contact_phone, is_verified) VALUES (?, ?, ?, 1)');
+                        $mIns = $pdo->prepare('INSERT INTO merchant_profiles (user_id, business_name, contact_phone, is_verified) VALUES (?, ?, ?, TRUE)');
                         $mIns->execute([$userId, $bName, $phone]);
                     }
 
