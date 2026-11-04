@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../../config/database.php';
@@ -187,7 +187,7 @@ class AuthController {
             $merchantId = null;
             if ($role === 'merchant') {
                 $bName = $businessName !== '' ? $businessName : "{$fullName}'s Services";
-                $mStmt = $this->db->prepare('INSERT INTO merchant_profiles (user_id, business_name, business_type, contact_phone, is_verified) VALUES (?, ?, ?, ?, 1)');
+                $mStmt = $this->db->prepare('INSERT INTO merchant_profiles (user_id, business_name, business_type, contact_phone, is_verified) VALUES (?, ?, ?, ?, TRUE)');
                 $mStmt->execute([$userId, $bName, $businessType, $phone]);
                 $merchantId = (int)$this->db->lastInsertId();
             }
