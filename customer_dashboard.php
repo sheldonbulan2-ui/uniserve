@@ -24,11 +24,11 @@ $counts = [
 $stmt = $conn->prepare(
     "SELECT
         COUNT(*) AS total,
-        COALESCE(SUM(status = 'pending'), 0) AS pending,
-        COALESCE(SUM(status = 'accepted'), 0) AS accepted,
-        COALESCE(SUM(status = 'in_progress'), 0) AS in_progress,
-        COALESCE(SUM(status = 'completed'), 0) AS completed,
-        COALESCE(SUM(status = 'cancelled'), 0) AS cancelled
+        COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
+        COALESCE(SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END), 0) AS accepted,
+        COALESCE(SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END), 0) AS in_progress,
+        COALESCE(SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END), 0) AS completed,
+        COALESCE(SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END), 0) AS cancelled
      FROM service_requests
      WHERE customer_id = ?"
 );
