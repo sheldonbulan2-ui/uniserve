@@ -181,6 +181,107 @@ class Database {
                         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
                     );
 
+                    CREATE TABLE IF NOT EXISTS merchant_profiles (
+                        id SERIAL PRIMARY KEY,
+                        user_id INT NOT NULL,
+                        business_name VARCHAR(150) NOT NULL,
+                        business_type VARCHAR(100) NOT NULL DEFAULT 'General Services',
+                        description TEXT NULL,
+                        address VARCHAR(255) NULL,
+                        contact_phone VARCHAR(30) NULL,
+                        opening_time TIME NULL,
+                        closing_time TIME NULL,
+                        banner_image VARCHAR(255) NULL,
+                        is_verified BOOLEAN NOT NULL DEFAULT TRUE,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+
+                    CREATE TABLE IF NOT EXISTS catalog_items (
+                        id SERIAL PRIMARY KEY,
+                        merchant_id INT NOT NULL,
+                        category_id INT NULL,
+                        item_type VARCHAR(20) NOT NULL DEFAULT 'product',
+                        name VARCHAR(150) NOT NULL,
+                        sku VARCHAR(50) NULL,
+                        description TEXT NULL,
+                        price NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+                        image_url VARCHAR(255) NULL,
+                        duration_minutes INT NULL,
+                        max_capacity INT NULL,
+                        is_available BOOLEAN NOT NULL DEFAULT TRUE,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+
+                    CREATE TABLE IF NOT EXISTS inventory (
+                        id SERIAL PRIMARY KEY,
+                        item_id INT NOT NULL,
+                        stock_quantity INT NOT NULL DEFAULT 0,
+                        reserved_quantity INT NOT NULL DEFAULT 0,
+                        low_stock_threshold INT NOT NULL DEFAULT 10,
+                        unit VARCHAR(30) NOT NULL DEFAULT 'pcs',
+                        last_restocked_at TIMESTAMPTZ NULL,
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+
+                    CREATE TABLE IF NOT EXISTS orders (
+                        id SERIAL PRIMARY KEY,
+                        order_number VARCHAR(50) NOT NULL UNIQUE,
+                        customer_id INT NOT NULL,
+                        merchant_id INT NOT NULL,
+                        order_type VARCHAR(20) NOT NULL DEFAULT 'pickup',
+                        subtotal NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+                        tax_amount NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+                        total_amount NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+                        order_status VARCHAR(30) NOT NULL DEFAULT 'pending',
+                        delivery_address TEXT NULL,
+                        customer_notes TEXT NULL,
+                        cancellation_reason TEXT NULL,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+
+                    CREATE TABLE IF NOT EXISTS order_items (
+                        id SERIAL PRIMARY KEY,
+                        order_id INT NOT NULL,
+                        item_id INT NOT NULL,
+                        item_name_snapshot VARCHAR(150) NOT NULL,
+                        quantity INT NOT NULL DEFAULT 1,
+                        unit_price NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+                        line_total NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+
+                    CREATE TABLE IF NOT EXISTS reservations (
+                        id SERIAL PRIMARY KEY,
+                        reservation_code VARCHAR(30) NOT NULL UNIQUE,
+                        customer_id INT NOT NULL,
+                        merchant_id INT NOT NULL,
+                        service_item_id INT NULL,
+                        reservation_date DATE NOT NULL,
+                        reservation_time TIME NOT NULL,
+                        guest_count INT NOT NULL DEFAULT 1,
+                        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                        special_requests TEXT NULL,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+
+                    CREATE TABLE IF NOT EXISTS payments (
+                        id SERIAL PRIMARY KEY,
+                        transaction_ref VARCHAR(64) NOT NULL UNIQUE,
+                        order_id INT NULL,
+                        reservation_id INT NULL,
+                        customer_id INT NOT NULL,
+                        merchant_id INT NOT NULL,
+                        amount NUMERIC(10,2) NOT NULL DEFAULT 0.00,
+                        payment_method VARCHAR(30) NOT NULL DEFAULT 'cash',
+                        payment_status VARCHAR(20) NOT NULL DEFAULT 'unpaid',
+                        paid_at TIMESTAMPTZ NULL,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    );
+
                     CREATE TABLE IF NOT EXISTS inventory_logs (
                         id SERIAL PRIMARY KEY,
                         inventory_id INT NOT NULL,
