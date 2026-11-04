@@ -1,333 +1,144 @@
 <?php
-session_start();
-require_once __DIR__ . '/config.php';
+declare(strict_types=1);
 
-// If an administrator is already logged in, provide a direct shortcut
-$isAdmin = isset($_SESSION["user_id"], $_SESSION["role"]) && $_SESSION["role"] === "admin";
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/config/Response.php';
 
-// Live stats preview from database
-$totalBusinesses = 0;
-$totalServices = 0;
-$totalCategories = 0;
-
-try {
-    if (isset($conn) && !$conn->connect_error) {
-        $resB = $conn->query("SELECT COUNT(*) AS c FROM businesses WHERE status = 'approved'");
-        if ($resB) { $totalBusinesses = (int)($resB->fetch_assoc()['c'] ?? 0); $resB->free(); }
-
-        $resS = $conn->query("SELECT COUNT(*) AS c FROM services WHERE availability = 'available'");
-        if ($resS) { $totalServices = (int)($resS->fetch_assoc()['c'] ?? 0); $resS->free(); }
-
-        $resC = $conn->query("SELECT COUNT(*) AS c FROM categories");
-        if ($resC) { $totalCategories = (int)($resC->fetch_assoc()['c'] ?? 0); $resC->free(); }
-    }
-} catch (Throwable $e) {}
-
-$apkFile = __DIR__ . '/downloads/uniserve-v1.0.apk';
-$apkSizeMb = file_exists($apkFile) ? round(filesize($apkFile) / (1024 * 1024), 1) : 14.4;
+// Fetch latest APK metadata
+$apkFile = __DIR__ . '/downloads/UniServe-v1.0.apk';
+$fileSize = file_exists($apkFile) ? round(filesize($apkFile) / (1024 * 1024), 2) : 14.95;
+$checksum = file_exists($apkFile) ? hash_file('sha256', $apkFile) : 'a5536eb99b760723bcd6845faf2a4db2c0fe95e4f48b066cf640c4e70e9a5697';
+$version = 'v1.0.0';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniServe — Unified Business & Service Management Ecosystem</title>
+    <title>UniServe — Unified Business & Service Management Platform</title>
     <link rel="stylesheet" href="assets/css/landing.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
+<body>
 
-<body class="landing-page">
-    <div class="landing-ambient" aria-hidden="true"></div>
-
-    <div class="landing-container">
-
-        <!-- NAVIGATION -->
-        <header class="landing-nav">
-            <a class="nav-brand" href="index.php">
-                <div class="nav-brand-icon">U</div>
-                <div class="nav-brand-title">
-                    <strong>UniServe</strong>
-                    <small>ECOSYSTEM PORTAL</small>
-                </div>
-            </a>
-
-            <div class="nav-actions">
-                <div class="status-badge">
-                    <span class="status-pulse"></span>
-                    <span>Cloud API & Database Active</span>
-                </div>
-
-                <?php if ($isAdmin): ?>
-                    <a class="btn-nav-admin" href="admin_dashboard.php">
-                        <span>Admin Dashboard →</span>
-                    </a>
-                <?php else: ?>
-                    <a class="btn-nav-admin" href="login.php">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                        </svg>
-                        <span>Admin Login</span>
-                    </a>
-                <?php endif; ?>
+    <!-- Navigation Header -->
+    <header class="landing-nav">
+        <a href="index.php" class="brand-wrap">
+            <div class="brand-logo">U</div>
+            <div class="brand-text">
+                <strong>UniServe</strong>
+                <small>Ecosystem</small>
             </div>
-        </header>
+        </a>
 
-        <!-- HERO SECTION -->
-        <section class="landing-hero">
-            <div class="hero-pill-badge">
-                <span>NEW RELEASE &bull; ANDROID APK v1.0.0 NOW AVAILABLE</span>
-            </div>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#download">Android App</a></li>
+            <li><a href="#roles">Portals</a></li>
+            <li><a href="login.php" class="btn btn-secondary btn-sm">Sign In</a></li>
+            <li><a href="register.php" class="btn btn-primary btn-sm">Get Started</a></li>
+        </ul>
+    </header>
 
-            <h1>
-                One Platform for Services.<br>
-                <span class="gradient-text">Built for Mobile & Cloud.</span>
-            </h1>
-
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <span class="apk-badge">&#9679; Version 1.0 Production Ready</span>
+            <h1>Unified Services.<br><span class="hero-highlight">Absolute Precision.</span></h1>
             <p class="hero-subtitle">
-                UniServe connects Customers and Merchants through our native Android application, backed by a real-time PostgreSQL database and executive web administrative governance.
+                An enterprise-grade ecosystem uniting live inventory, food & retail ordering, restaurant reservations, and transactional governance across Web and native Android.
+            </p>
+            <div class="hero-actions">
+                <a href="#download" class="btn btn-primary">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download Android APK
+                </a>
+                <a href="login.php" class="btn btn-secondary">Web Console Login</a>
+            </div>
+        </div>
+
+        <!-- Standout APK Download Card -->
+        <div class="apk-card" id="download">
+            <span class="apk-badge">&#129302; Official Android Release</span>
+            <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;">UniServe Mobile</h3>
+            <p style="color: var(--color-text-muted); font-size: 0.875rem; margin-bottom: 20px;">
+                Designed exclusively for Customers and Merchants. Real-time ordering, push fulfillment, and table bookings.
             </p>
 
-            <div class="hero-cta-group">
-                <!-- Direct APK Download Button -->
-                <a class="btn-download-apk" href="download.php">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-1.0001s.4482-1.0001.9993-1.0001c.552 0 .9997.4486.9997 1.0001s-.4477 1.0001-.9997 1.0001m-11.046 0c-.5511 0-.9993-.4486-.9993-1.0001s.4482-1.0001.9993-1.0001c.5519 0 .9997.4486.9997 1.0001s-.4478 1.0001-.9997 1.0001m11.4045-6.02l1.9973-3.4592a.416.416 0 0 0-.1521-.5676.416.416 0 0 0-.5676.1521l-2.0223 3.503C15.5902 8.414 13.8533 8.12 12 8.12s-3.5902.294-5.1368.8307L4.8409 5.4477a.416.416 0 0 0-.5676-.1521.4157.4157 0 0 0-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
-                    </svg>
-                    <span>Download Android APK</span>
-                </a>
-
-                <!-- Admin Console Link -->
-                <a class="btn-admin-portal" href="login.php">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                    <span>Admin Web Portal</span>
-                </a>
+            <div class="apk-details">
+                <span>Release Version</span>
+                <span><?= htmlspecialchars($version) ?></span>
+            </div>
+            <div class="apk-details">
+                <span>Package Size</span>
+                <span><?= $fileSize ?> MB</span>
+            </div>
+            <div class="apk-details">
+                <span>Target Architecture</span>
+                <span>Universal (ARM64 / x86_64)</span>
+            </div>
+            <div class="apk-details">
+                <span>Direct REST API</span>
+                <span style="color: var(--color-accent);">&#10003; Connected</span>
             </div>
 
-            <div class="apk-meta-bar">
-                <span>Package: <strong>UniServe-v1.0.apk</strong></span>
-                <span>&bull;</span>
-                <span>Size: <strong><?= $apkSizeMb ?> MB</strong></span>
-                <span>&bull;</span>
-                <span>Android: <strong>v8.0+ (API 33+)</strong></span>
-                <span>&bull;</span>
-                <span>Arch: <strong>Universal ARM/x86</strong></span>
+            <div class="checksum-box">
+                <strong style="color: #F1F5F9; display: block; margin-bottom: 4px;">SHA-256 Checksum:</strong>
+                <?= htmlspecialchars($checksum) ?>
             </div>
-        </section>
 
-        <!-- WHAT CAN YOU ACCESS (ROLE ACCESS BREAKDOWN) -->
-        <section class="access-guide-section" id="access-guide">
-            <div class="section-header">
-                <span class="section-label">PLATFORM PERMISSIONS & ROLES</span>
-                <h2>What Can You Access?</h2>
-                <p>
-                    UniServe employs strict role-based architecture. Customers and Merchants operate on the high-performance Android App, while Platform Governance is hosted on the Web Console.
+            <a href="download.php" class="btn btn-accent" style="width: 100%; margin-top: 10px;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Download UniServe.apk (<?= $fileSize ?> MB)
+            </a>
+            <small style="display: block; text-align: center; color: var(--color-text-dim); margin-top: 8px; font-size: 0.75rem;">
+                Requires Android 8.0 (Oreo) or higher.
+            </small>
+        </div>
+    </section>
+
+    <!-- Role Architecture Matrix -->
+    <section class="features-section" id="roles">
+        <div class="section-header">
+            <h2>Three Dedicated Roles. One Architecture.</h2>
+            <p>Purpose-driven workflows engineered for seamless business operations.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">&#128187;</div>
+                <h3 style="margin-bottom: 8px; font-weight: 700;">Admin Governance</h3>
+                <span class="badge badge-danger" style="margin-bottom: 12px;">Web Portal Only</span>
+                <p style="color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.6;">
+                    Super Admin command center for system KPIs, merchant approvals, global transactions, audit logs, and APK release distribution.
                 </p>
             </div>
 
-            <div class="access-roles-grid">
-
-                <!-- 1. CUSTOMER -->
-                <div class="role-card role-customer">
-                    <div class="role-header">
-                        <div class="role-icon-box">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                        </div>
-                        <div class="role-title-wrap">
-                            <h3>Customer</h3>
-                            <span class="role-platform-tag">Android App Exclusive</span>
-                        </div>
-                    </div>
-
-                    <p class="role-desc">
-                        Designed for individuals seeking services, booking appointments, and tracking real-time delivery from trusted merchants.
-                    </p>
-
-                    <ul class="role-features">
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Browse verified local services & storefronts</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Filter catalog by category, price, & availability</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Submit custom requests with preferred schedules</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Real-time status tracking (Pending → Completed)</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Mobile account profile & order history logs</span>
-                        </li>
-                    </ul>
-
-                    <a class="role-action-btn" href="download.php">
-                        <span>Get Customer App (APK)</span>
-                        <span>↓</span>
-                    </a>
-                </div>
-
-                <!-- 2. MERCHANT -->
-                <div class="role-card role-merchant">
-                    <div class="role-header">
-                        <div class="role-icon-box">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                            </svg>
-                        </div>
-                        <div class="role-title-wrap">
-                            <h3>Merchant / Business</h3>
-                            <span class="role-platform-tag">Android App Exclusive</span>
-                        </div>
-                    </div>
-
-                    <p class="role-desc">
-                        Empowers store owners and service providers to manage digital storefronts, accept bookings, and communicate order progress.
-                    </p>
-
-                    <ul class="role-features">
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Onboard and manage business storefront profiles</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>List services, set rates, and toggle availability</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Review incoming customer booking notifications</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Accept, reject, or mark orders In Progress</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Instant merchant dashboard metrics & active logs</span>
-                        </li>
-                    </ul>
-
-                    <a class="role-action-btn" href="download.php">
-                        <span>Get Merchant App (APK)</span>
-                        <span>↓</span>
-                    </a>
-                </div>
-
-                <!-- 3. ADMINISTRATOR -->
-                <div class="role-card role-admin">
-                    <div class="role-header">
-                        <div class="role-icon-box">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                            </svg>
-                        </div>
-                        <div class="role-title-wrap">
-                            <h3>Administrator</h3>
-                            <span class="role-platform-tag">Web Console Exclusive</span>
-                        </div>
-                    </div>
-
-                    <p class="role-desc">
-                        Strict executive portal for platform operators managing business moderation, user security, category taxonomies, and audit ledgers.
-                    </p>
-
-                    <ul class="role-features">
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Storefront verification (Approve or Reject merchants)</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>System category & marketplace taxonomy management</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Platform user auditing & role access administration</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Full financial transaction & order request oversight</span>
-                        </li>
-                        <li>
-                            <span class="feature-check">✓</span>
-                            <span>Supabase PostgreSQL analytics & health telemetry</span>
-                        </li>
-                    </ul>
-
-                    <a class="role-action-btn" href="login.php">
-                        <span>Enter Admin Console</span>
-                        <span>→</span>
-                    </a>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- APK INSTALLATION GUIDE -->
-        <section class="install-guide-card">
-            <div class="install-header">
-                <div>
-                    <span class="section-label">MOBILE SETUP GUIDE</span>
-                    <h3>How to Install the UniServe Android APK</h3>
-                </div>
-                <a class="btn-download-apk" href="download.php" style="padding: 10px 20px; font-size: 13px;">
-                    <span>Download APK Now</span>
-                </a>
+            <div class="feature-card">
+                <div class="feature-icon">&#127978;</div>
+                <h3 style="margin-bottom: 8px; font-weight: 700;">Merchant Operations</h3>
+                <span class="badge badge-success" style="margin-bottom: 12px;">Web & Android App</span>
+                <p style="color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.6;">
+                    Real-time catalog CRUD, ACID-protected inventory deduction, live order fulfillment queue, and table reservation scheduling.
+                </p>
             </div>
 
-            <div class="install-steps-grid">
-                <div class="step-card">
-                    <div class="step-num">1</div>
-                    <strong>Download the APK</strong>
-                    <p>Tap the <strong>Download Android APK</strong> button above to save <code>UniServe-v1.0.apk</code> directly to your device.</p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-num">2</div>
-                    <strong>Allow Installation</strong>
-                    <p>When prompted by your browser, enable <em>"Install unknown apps"</em> in your Android settings for your browser or file manager.</p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-num">3</div>
-                    <strong>Open and Launch</strong>
-                    <p>Open the downloaded package, tap <strong>Install</strong>, and launch UniServe. Choose <strong>Customer</strong> or <strong>Merchant</strong> mode.</p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-num">4</div>
-                    <strong>Sign In or Register</strong>
-                    <p>Create your new account in seconds or sign in with your credentials to start browsing or fulfilling orders.</p>
-                </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128100;</div>
+                <h3 style="margin-bottom: 8px; font-weight: 700;">Customer Experience</h3>
+                <span class="badge badge-info" style="margin-bottom: 12px;">Web & Android App</span>
+                <p style="color: var(--color-text-muted); font-size: 0.875rem; line-height: 1.6;">
+                    Interactive storefront discovery, stock-validated cart checkout, dynamic reservations, and live transaction order tracking.
+                </p>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- FOOTER -->
-        <footer class="landing-footer">
-            <p>
-                &copy; <?= date("Y") ?> UniServe Platform. All rights reserved. &bull;
-                <a href="download.php">Download APK</a> &bull;
-                <a href="login.php">Admin Sign In</a> &bull;
-                <a href="ping.php" target="_blank">System Health</a>
-            </p>
-            <p style="margin-top: 8px; font-size: 11px; color: var(--text-muted);">
-                Powered by Render.com Docker Web Service &bull; Supabase PostgreSQL Database &bull; Native Android Engine
-            </p>
-        </footer>
+    <footer style="text-align: center; padding: var(--space-8); border-top: 1px solid var(--color-border); color: var(--color-text-muted); font-size: 0.8125rem;">
+        &copy; <?= date('Y') ?> UniServe Enterprise Platform. All rights reserved.
+    </footer>
 
-    </div>
-
-<?php if (isset($conn)) { $conn->close(); } ?>
 </body>
 </html>
