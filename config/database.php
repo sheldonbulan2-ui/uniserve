@@ -1,4 +1,9 @@
 <?php
+// Ensure output buffering is active so headers and sessions can always be sent cleanly
+if (!ob_get_level()) {
+    ob_start();
+}
+
 /**
  * UniServe Universal Database Configuration
  * Supports both local MySQL/MariaDB (via mysqli) and Supabase/Render PostgreSQL (via PDO PGSQL).

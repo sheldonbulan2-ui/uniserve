@@ -11,8 +11,10 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pdo pdo_pgsql pgsql mysqli pdo_mysql
 
-# Enable Apache rewrite module
-RUN a2enmod rewrite
+# Enable Apache rewrite module & output buffering in PHP
+RUN a2enmod rewrite \
+    && echo "output_buffering = 4096" >> "$PHP_INI_DIR/php.ini-production" \
+    && cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 # Configure Apache port dynamically for Render ($PORT)
 RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
