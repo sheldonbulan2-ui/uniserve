@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../config/cors_security.php';
-require_once __DIR__ . '/../../config/Response.php';
-require_once __DIR__ . '/../../config/JwtHandler.php';
-require_once __DIR__ . '/../../config/AuthMiddleware.php';
-require_once __DIR__ . '/../../config/RateLimitMiddleware.php';
+require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../config/cors_security.php';
+require_once __DIR__ . '/../../../config/Response.php';
+require_once __DIR__ . '/../../../config/JwtHandler.php';
+require_once __DIR__ . '/../../../config/AuthMiddleware.php';
+require_once __DIR__ . '/../../../config/RateLimitMiddleware.php';
 
 /**
  * Controller: AuthController
