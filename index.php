@@ -5,9 +5,11 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/Response.php';
 
 // Fetch latest APK metadata
-$apkFile = __DIR__ . '/downloads/UniServe-v1.0.apk';
-$fileSize = file_exists($apkFile) ? round(filesize($apkFile) / (1024 * 1024), 2) : 14.95;
-$checksum = file_exists($apkFile) ? hash_file('sha256', $apkFile) : 'a5536eb99b760723bcd6845faf2a4db2c0fe95e4f48b066cf640c4e70e9a5697';
+$apkFile = file_exists(__DIR__ . '/downloads/uniserve-v1.0.apk') 
+    ? __DIR__ . '/downloads/uniserve-v1.0.apk' 
+    : __DIR__ . '/downloads/UniServe-v1.0.apk';
+$fileSize = file_exists($apkFile) ? round(filesize($apkFile) / (1024 * 1024), 2) : 11.42;
+$checksum = file_exists($apkFile) ? hash_file('sha256', $apkFile) : 'FFDDE9A723BA696B999F98661E0D7C8845A8760B573E1358B7D6308EE9BB6F1C';
 $version = 'v1.0.0';
 ?>
 <!DOCTYPE html>
