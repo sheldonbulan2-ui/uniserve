@@ -172,10 +172,17 @@ class AuthController {
 
         $this->db->beginTransaction();
         try {
-            $uStmt = $this->db->prepare('INSERT INTO users (uuid, role, full_name, email, phone, password_hash, status) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $uStmt = $this->db->prepare('INSERT INTO users (uuid, role, full_name, email, phone, password, password_hash, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
             $status = ($role === 'merchant') ? 'active' : 'active';
-            $uStmt->execute([$uuid, $role, $fullName, $email, $phone, $passwordHash, $status]);
-            $userId = (int)$this->db->lastInsertId();
+            $uStmt->execute([$uuid, $role, $fullName, $email, $phone, $passwordHash, $passwordHash, $status]);
+            $userId = 0;
+            try { $userId = (int)$this->db->lastInsertId(); } catch (Throwable) {}
+            if ($userId === 0) {
+                $idLookup = $this->db->prepare('SELECT COALESCE(id, user_id) AS uid FROM users WHERE email = ? LIMIT 1');
+                $idLookup->execute([$email]);
+                $userId = (int)$idLookup->fetchColumn();
+            }
+            try { $this->db->exec("UPDATE users SET id = user_id WHERE id IS NULL AND user_id = {$userId}"); } catch (Throwable) {}
 
             $merchantId = null;
             if ($role === 'merchant') {
