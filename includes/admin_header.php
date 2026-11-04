@@ -48,11 +48,6 @@ $activeNav = $activeNav ?? 'dashboard';
             </div>
 
             <div style="display: flex; align-items: center; gap: 16px;">
-                <div class="admin-badge badge-approved" style="font-size: 11px; padding: 5px 12px;">
-                    <span style="width: 7px; height: 7px; background: #10b981; border-radius: 50%; box-shadow: 0 0 6px #10b981;"></span>
-                    <span>PostgreSQL Cloud Synced</span>
-                </div>
-
                 <a href="profile.php" class="btn-secondary" style="padding: 7px 14px; font-size: 12px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>

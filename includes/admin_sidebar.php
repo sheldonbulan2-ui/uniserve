@@ -6,21 +6,20 @@ if (!defined('UNISERVE_ADMIN_LAYOUT')) {
     exit('Direct access not permitted.');
 }
 
-// Fetch pending counts for live badge notification
+// Fetch pending counts for live badge notification (single round-trip query)
 $pendingBusinessesCount = 0;
 $pendingRequestsCount = 0;
 
 if (isset($conn) && !$conn->connect_error) {
     try {
-        $pRes = $conn->query("SELECT COUNT(*) AS c FROM businesses WHERE status = 'pending'");
-        if ($pRes) {
-            $pendingBusinessesCount = (int)($pRes->fetch_assoc()['c'] ?? 0);
-            $pRes->free();
-        }
-        $rRes = $conn->query("SELECT COUNT(*) AS c FROM service_requests WHERE status = 'pending'");
-        if ($rRes) {
-            $pendingRequestsCount = (int)($rRes->fetch_assoc()['c'] ?? 0);
-            $rRes->free();
+        $cRes = $conn->query("SELECT 
+            (SELECT COUNT(*) FROM businesses WHERE status = 'pending') AS pending_b,
+            (SELECT COUNT(*) FROM service_requests WHERE status = 'pending') AS pending_r");
+        if ($cRes) {
+            $row = $cRes->fetch_assoc();
+            $pendingBusinessesCount = (int)($row['pending_b'] ?? 0);
+            $pendingRequestsCount = (int)($row['pending_r'] ?? 0);
+            $cRes->free();
         }
     } catch (Throwable $e) {}
 }
@@ -134,26 +133,6 @@ $activeNav = $activeNav ?? 'dashboard';
                 <line x1="12" y1="18" x2="12.01" y2="18"></line>
             </svg>
             <span>APK Release Mgr</span>
-        </a>
-
-        <div class="nav-heading" style="margin-top: 14px;">Distribution & App</div>
-
-        <a class="admin-nav-link" href="download.php" target="_blank">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span>Get Android APK</span>
-        </a>
-
-        <a class="admin-nav-link" href="index.php" target="_blank">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-            <span>Public Portal</span>
         </a>
     </nav>
 

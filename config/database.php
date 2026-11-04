@@ -70,7 +70,13 @@ class Database {
                 self::$pdoInstance = new PDO($dsn, $dbUser, $dbPass, $options);
             }
 
-            self::initializeTables(self::$pdoInstance, $dbType);
+            // Fast Init Cache: Avoid re-running heavy DDL table checks on every HTTP page request
+            $flagFile = sys_get_temp_dir() . '/uniserve_schema_v2_' . md5((string)$dbHost . (string)$dbName) . '.flag';
+            $forceMigrate = isset($_GET['migrate']) && $_GET['migrate'] === 'force';
+            if ($forceMigrate || !file_exists($flagFile)) {
+                self::initializeTables(self::$pdoInstance, $dbType);
+                @file_put_contents($flagFile, (string)time());
+            }
 
         } catch (PDOException $e) {
             error_log("Database connection failure: " . $e->getMessage());

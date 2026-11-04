@@ -9,7 +9,6 @@ $apkFile = file_exists(__DIR__ . '/downloads/uniserve-v1.0.apk')
     ? __DIR__ . '/downloads/uniserve-v1.0.apk' 
     : __DIR__ . '/downloads/UniServe-v1.0.apk';
 $fileSize = file_exists($apkFile) ? round(filesize($apkFile) / (1024 * 1024), 2) : 11.42;
-$checksum = file_exists($apkFile) ? hash_file('sha256', $apkFile) : 'FFDDE9A723BA696B999F98661E0D7C8845A8760B573E1358B7D6308EE9BB6F1C';
 $version = 'v1.0.0';
 ?>
 <!DOCTYPE html>
@@ -36,7 +35,6 @@ $version = 'v1.0.0';
         </a>
 
         <ul class="nav-links">
-            <li><a href="#features">Features</a></li>
             <li><a href="#download">Android App</a></li>
             <li><a href="#roles">Portals</a></li>
             <li><a href="login.php" class="btn btn-secondary btn-sm">Sign In</a></li>
@@ -82,18 +80,10 @@ $version = 'v1.0.0';
                 <span style="color: var(--color-accent);">&#10003; Connected</span>
             </div>
 
-            <div class="checksum-box">
-                <strong style="color: #F1F5F9; display: block; margin-bottom: 4px;">SHA-256 Checksum:</strong>
-                <?= htmlspecialchars($checksum) ?>
-            </div>
-
-            <a href="download.php" class="btn btn-accent" style="width: 100%; margin-top: 10px;">
+            <a href="download.php" class="btn btn-accent" style="width: 100%; margin-top: 14px;">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 Download UniServe.apk (<?= $fileSize ?> MB)
             </a>
-            <small style="display: block; text-align: center; color: var(--color-text-dim); margin-top: 8px; font-size: 0.75rem;">
-                Requires Android 8.0 (Oreo) or higher.
-            </small>
         </div>
     </section>
 
