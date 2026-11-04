@@ -83,6 +83,7 @@ if ($dbType === "pgsql") {
     class MysqlCompatStmt {
         private $pdo;
         private $pdoStmt;
+        private $conn;
         private $boundParams = [];
         private $types = "";
         private $executedRows = null;
@@ -92,9 +93,10 @@ if ($dbType === "pgsql") {
         public $error = "";
         public $errno = 0;
 
-        public function __construct(PDO $pdo, PDOStatement $pdoStmt) {
+        public function __construct(PDO $pdo, PDOStatement $pdoStmt, $conn = null) {
             $this->pdo = $pdo;
             $this->pdoStmt = $pdoStmt;
+            $this->conn = $conn;
         }
 
         public function bind_param($types, &...$vars) {
@@ -135,6 +137,9 @@ if ($dbType === "pgsql") {
                     $lastId = $this->pdo->query("SELECT lastval()")->fetchColumn();
                     if ($lastId) {
                         $this->insert_id = (int)$lastId;
+                        if ($this->conn) {
+                            $this->conn->insert_id = (int)$lastId;
+                        }
                     }
                 } catch (Exception $e) {
                     // No sequence used in this query; silently ignore
@@ -197,7 +202,7 @@ if ($dbType === "pgsql") {
                 // Normalize any remaining backticks to PostgreSQL identifiers
                 $cleanQuery = str_replace("`", "", $query);
                 $stmt = $this->pdo->prepare($cleanQuery);
-                return new MysqlCompatStmt($this->pdo, $stmt);
+                return new MysqlCompatStmt($this->pdo, $stmt, $this);
             } catch (Exception $e) {
                 $this->error = $e->getMessage();
                 $this->errno = (int) ($e->getCode() ?: 1);

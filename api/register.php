@@ -67,7 +67,7 @@ try {
     $stmt = $conn->prepare('INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)');
     $stmt->bind_param('ssss', $fullName, $email, $hashedPassword, $role);
     $stmt->execute();
-    $userId = (int) $conn->insert_id;
+    $userId = (int) ($stmt->insert_id ?: $conn->insert_id);
     $stmt->close();
 
     $businessId = null;
@@ -77,7 +77,7 @@ try {
         $pending = 'pending';
         $bStmt->bind_param('iss', $userId, $bName, $pending);
         $bStmt->execute();
-        $businessId = (int) $conn->insert_id;
+        $businessId = (int) ($bStmt->insert_id ?: $conn->insert_id);
         $bStmt->close();
     }
 
