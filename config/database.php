@@ -88,14 +88,8 @@ class Database {
      */
     private static function initializeTables(PDO $pdo, string $dbType): void {
         try {
-            // Check if apk_releases table exists
-            $check = ($dbType === 'pgsql')
-                ? "SELECT 1 FROM information_schema.tables WHERE table_name = 'apk_releases'"
-                : "SHOW TABLES LIKE 'apk_releases'";
-            $res = $pdo->query($check);
-            if (!$res || $res->rowCount() === 0) {
-                self::createMissingTables($pdo, $dbType);
-            }
+            // Always ensure required 3NF tables exist
+            self::createMissingTables($pdo, $dbType);
 
             // Detect whether users table has 'user_id' or 'id' and migrate/align columns
             $idCol = 'id';
